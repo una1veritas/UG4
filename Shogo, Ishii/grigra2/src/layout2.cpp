@@ -7,6 +7,8 @@
 #include <functional>
 #include <list>
 
+#include <pthread.h>
+
 #define DEFINE_STREAM_PRINT(T) \
   template<typename TYPE>\
   std::ostream &operator <<(std::ostream &out, T<TYPE> &p) { \
@@ -97,17 +99,19 @@ DEFINE_STREAM_PRINT(PointSet)
 template<typename TYPE>
 class PointSequence : public std::vector<int> {
   typedef typename std::vector<int>::iterator iterator;
-#define DEFINE_COMPARE(A) \
+#define DEFINE_COMPARE(A,B) \
   class compare_##A { \
     PointSet<TYPE> &set; \
   public: \
     compare_##A (PointSet<TYPE> &set) : set(set) {} \
     bool operator ()(const TYPE &a, const TYPE &b) const { \
-      return set[a].get##A() < set[b].get##A(); \
+      return set[a].get##A() < set[b].get##A() || \
+             ( set[a].get##A() == set[b].get##A() && \
+               set[a].get##B() < set[b].get##B() ); \
     } \
   };
-  DEFINE_COMPARE(X)
-  DEFINE_COMPARE(Y)
+  DEFINE_COMPARE(X,Y)
+  DEFINE_COMPARE(Y,X)
 #undef DEFINE_COMPARE
 #define BEGIN std::vector<int>::begin()
 #define END std::vector<int>::end()
@@ -147,6 +151,64 @@ public:
   }
 };
 DEFINE_STREAM_PRINT(grid)
+
+template <typename TYPE, typename PREDICATE>
+class RectangleTable {
+  typedef std::list< Point<int> > RLST_T;
+  typedef std::vector< std::list< Point<int> > > RDIC_T;
+  typedef std::vector<int> RCNT_T;
+
+  RDIC_T dictionary;
+  RCNT_T sizetable;
+public:
+  RectangleTable(int size) : dictionary(size), sizetable(size) {}
+  ~RectangleTable() {}
+  void push(int ix, int iy, int count) {
+    dictionary[count] = Point<int>(ix,iy);
+    sizetable[count] += 1;
+  }
+  int size(int count) {
+    return sizetable(count);
+  }
+  void per_set(int count, void *data) {
+    for(typename RLST_T::iterator i=dictionary[count].begin(); i!=dictionary[count].end(); ++i) {
+      PREDICATE pred(i,i,data);
+      pred->run();
+    }
+  }
+  void per_set_parallel(int count, int delimite, void *data) {
+    int j=0;
+    void *ret = 0;
+    std::list<PREDICATE> predl;
+    typename RLST_T::iterator s, i;
+    for(i=dictionary[count].begin(); i!=dictionary[count].end(); ++i) {
+      if(j==0) s=i;
+      if(j==delimite) {
+        // PUSH-TASK
+        predl.push_front(PREDICATE(s,i,data));
+        j=0;
+      }
+    }
+    if(j==delimite) {
+      predl.push_front(PREDICATE(s,--i,data));
+      j=0;
+    }
+    std::vector<pthread_t> threads(predl.size());
+    int ii=0;
+    for(typename std::list<PREDICATE>::iterator i=predl.begin(); i!= predl.end(); ++i) {
+      ++ii;
+      pthread_create(&(threads[ii]), NULL, start_predicate, *i);
+    }
+    for(typename std::vector<pthread_t>::iterator i=threads.begin(); i!=threads.end(); ++i) {
+      pthread_join(*i, &ret);
+    }
+  }
+
+  static void start_predicate(void *pred) {
+    PREDICATE *p = (PREDICATE*)pred;
+    p->run();
+  }
+};
 
 template <typename TYPE>
 class GridLayout {
@@ -188,12 +250,11 @@ class GridLayout {
     CODE \
   } break;
 #define PCOUNT(V,T,X,Y) V = (T) ? 0 : cr.ref(X,Y)
-#define SETCOUNT(V) cr.ref(i,j) = (V)+1; rd[V].push_back(Point<int>(i,j)); rdcnt[V]+=1;
+#define SETCOUNT(V) cr.ref(i,j) = (V)+1; rd[V].push_back(Point<int>(i,j));
 #define EACH_CELL(X,Y) for(int X=0; X<set.size(); ++X) for(int Y=0; Y<set.size(); ++Y)
   void listCountRects(PSET_T &set, PSEQ_T &x, PSEQ_T &y) {
     grid<int> cr(set.size());
     RDIC_T rd(set.size());
-    std::vector<int> rdcnt(set.size(), 0);
     int px, py, a, b;
     EACH_CELL(i,j) {
       switch(checkPointPair(x.ref(i), y.ref(j))) {
