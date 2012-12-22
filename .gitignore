@@ -1,1 +1,3 @@
+*.out
+*.time
 .DS_Store

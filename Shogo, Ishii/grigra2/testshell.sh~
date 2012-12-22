@@ -1,5 +1,3 @@
-export PATH=.:$PATH
-
 time (layout2 100 < testd/test10_1 1>testd/test10_1.out 2>testd/test10_1.log) 2>testd/test10_1.time
 time (layout2 100 < testd/test10_2 1>testd/test10_2.out 2>testd/test10_2.log) 2>testd/test10_2.time
 time (layout2 100 < testd/test10_3 1>testd/test10_3.out 2>testd/test10_3.log) 2>testd/test10_3.time

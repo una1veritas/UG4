@@ -1,18 +1,23 @@
+CPPOPTS = -O3 -g
 
-all : layout.exe layout2.exe genset.exe ongrid.exe setinfo.exe
+all : layout layout2 genset ongrid setinfo
 	echo success!
 
-layout.exe : src/layout.cpp
-	g++ $^ -o $@
+layout : src/layout.cpp
+	g++  ${CPPOPTS} $^ -o $@
 
-layout2.exe : src/layout2.cpp
-	g++ $^ -o $@
+layout2 : src/layout2.cpp
+	g++ ${CPPOPTS} $^ -o $@
 
-genset.exe : src/genset.cpp
-	g++ $^ -o $@
+genset : src/genset.cpp
+	g++ ${CPPOPTS} $^ -o $@
 
-ongrid.exe : src/ongrid.cpp
-	g++ $^ -o $@
+ongrid : src/ongrid.cpp
+	g++ ${CPPOPTS} $^ -o $@
 
-setinfo.exe : src/setinfo.cpp
-	g++ $^ -o $@
+setinfo : src/setinfo.cpp
+	g++ ${CPPOPTS} $^ -o $@
+
+clean:
+	\rm *.exe *.o
+	
