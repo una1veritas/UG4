@@ -6,7 +6,7 @@ layout.exe : src/layout.cpp
 	g++ $^ -o $@
 
 layout2.exe : src/layout2.cpp
-	g++ $^ -o $@
+	g++ $^ -o $@ -lpthread
 
 genset.exe : src/genset.cpp
 	g++ $^ -o $@
