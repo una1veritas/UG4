@@ -1,3 +1,16 @@
+*.o
 *.out
+*~
 *.time
+
+# Eclipse
+.metadata
+.project
+.classpath
+.settings/
+.loadpath
+# CDT-specific
+.cproject
+
+#Mac OS
 .DS_Store
