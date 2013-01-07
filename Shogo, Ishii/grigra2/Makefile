@@ -6,8 +6,8 @@ all : layout layout2 genset ongrid setinfo
 layout : src/layout.cpp
 	g++  ${CPPOPTS} $^ -o $@
 
-layout2 : src/layout2.cpp
-	g++ ${CPPOPTS} $^ -o $@
+layout2.exe : src/layout2.cpp
+	g++ $^ -o $@ -lpthread
 
 genset : src/genset.cpp
 	g++ ${CPPOPTS} $^ -o $@

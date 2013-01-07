@@ -7,6 +7,8 @@
 #include <functional>
 #include <list>
 
+#include <pthread.h>
+
 #define DEFINE_STREAM_PRINT(T) \
   template<typename TYPE>\
   std::ostream &operator <<(std::ostream &out, T<TYPE> &p) { \
@@ -52,6 +54,11 @@ public:
   Point &operator +=(Point p) { x += p.x; y += p.y; return *this; }
   Point operator -(Point &p) { Point q(x - p.x, y - p.y); return q; }
   void print(std::ostream &out) { out << x << " " << y; }
+  int checkPair(Point &q) {
+    if(this == &q) return 1;
+    if(x >= q.x && y <= q.y) return 2;
+    return 0;
+  }
 };
 DEFINE_STREAM_PRINT(Point)
 
@@ -97,17 +104,19 @@ DEFINE_STREAM_PRINT(PointSet)
 template<typename TYPE>
 class PointSequence : public std::vector<int> {
   typedef typename std::vector<int>::iterator iterator;
-#define DEFINE_COMPARE(A) \
+#define DEFINE_COMPARE(A,B) \
   class compare_##A { \
     PointSet<TYPE> &set; \
   public: \
     compare_##A (PointSet<TYPE> &set) : set(set) {} \
     bool operator ()(const TYPE &a, const TYPE &b) const { \
-      return set[a].get##A() < set[b].get##A(); \
+      return set[a].get##A() < set[b].get##A() || \
+             ( set[a].get##A() == set[b].get##A() && \
+               set[a].get##B() < set[b].get##B() ); \
     } \
   };
-  DEFINE_COMPARE(X)
-  DEFINE_COMPARE(Y)
+  DEFINE_COMPARE(X,Y)
+  DEFINE_COMPARE(Y,X)
 #undef DEFINE_COMPARE
 #define BEGIN std::vector<int>::begin()
 #define END std::vector<int>::end()
@@ -149,11 +158,152 @@ public:
 DEFINE_STREAM_PRINT(grid)
 
 template <typename TYPE>
+class CalcDistanceArgments {
+public:
+  int grid_size;
+  PointSequence<TYPE> &x, &y;
+  grid< Point<TYPE> > &tt;
+  grid<TYPE> &sum;
+  grid<int> &dir;
+  CalcDistanceArgments(PointSequence<TYPE> &x,
+                       PointSequence<TYPE> &y,
+                       grid< Point<TYPE> > &tt,
+                       grid<int> &dir,
+                       grid<TYPE> &sum,
+                       int grid_size)
+  : x(x), y(y), tt(tt), dir(dir), sum(sum), grid_size(grid_size) {}
+};
+
+template <typename TYPE>
+class CalcRectangleDistance {
+  typedef Point<TYPE> POINT_T;
+  typedef PointSequence<TYPE> PSEQ_T;
+  typedef typename std::list< Point<int> >::iterator itr;
+  itr s, e;
+  CalcDistanceArgments<TYPE> *dt;
+#define DEFINE_PREV(A1,a1,A2,a2) \
+  int prev##A1(int ix, int iy, PSEQ_T &x, PSEQ_T &y) { \
+    int t = a2.ref(i##a2).get##A2(); \
+    do { if(i##a1 <= 0) return -1; } while(t < a1.ref(--i##a1).get##A2()); \
+    return i##a1; \
+  }
+  DEFINE_PREV(X,x,Y,y)
+  DEFINE_PREV(Y,y,X,x)
+#undef DEFINE_PREV
+public:
+  CalcRectangleDistance(itr s, itr e, void *data)
+  : s(s), e(e), dt((CalcDistanceArgments<TYPE>*)data) {}
+  ~CalcRectangleDistance() {}
+  void run() {
+    int i, j, px, py, gsize = dt->grid_size;
+    TYPE r,t,alen,blen;
+    POINT_T a,b,prea,preb,da,db;
+    PointSequence<TYPE> &x = dt->x;
+    PointSequence<TYPE> &y = dt->y;
+    grid<POINT_T> &tt = dt->tt;
+    grid<int> &dir = dt->dir;
+    grid<TYPE> &sum = dt->sum;
+    do {
+#define CASE_TEMPLATE(ID,CODE) \
+  case ID : { \
+    px = prevX(i,j,x,y), py = prevY(i,j,x,y); \
+    CODE \
+  } break;
+#define CALC_AXIS(A,IA,X,IX,IY,LOGIC) \
+  X = (LOGIC) ? POINT_T() : tt.ref(IX,IY); \
+  pre##X = (LOGIC) ? POINT_T() : ((dir.ref(IX,IY)!=2) ? x.ref(IX) : y.ref(IY)); \
+  r = IX < 0 ? 0 : x.ref(IX).getX(); \
+  t = IY < 0 ? 0 : y.ref(IY).getY(); \
+  d##X = A.ref(IA).trans(pre##X, POINT_T(r,t), gsize); \
+  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY));
+#define SET_TABLE(T,S,D) tt.ref(i,j)=T, sum.ref(i,j)=S, dir.ref(i,j)=D;
+      i = s->getX(), j = s->getY();
+      switch(x.ref(i).checkPair(y.ref(j))) {
+        CASE_TEMPLATE(1,
+          CALC_AXIS(x,i,a,px,py,px<0||py<0)
+          SET_TABLE(da,alen,1))
+        CASE_TEMPLATE(2,
+          CALC_AXIS(x,i,a,px,j,px<0)
+          CALC_AXIS(y,j,b,i,py,py<0)
+          if(alen < blen) SET_TABLE(da,alen,1)
+          else SET_TABLE(db,blen,2))
+      }
+      //std::cerr << "calc : " << i << " " << j << std::endl;
+#undef CASE_TEMPLATE
+#undef CALC_AXIS
+#undef SET_TABLE
+    } while(s++ != e);
+  }
+};
+
+template <typename TYPE, typename PREDICATE>
+class RectangleTable {
+  typedef std::list< Point<int> > RLST_T;
+  typedef std::vector< std::list< Point<int> > > RDIC_T;
+  typedef std::vector<int> RCNT_T;
+
+  RDIC_T dictionary;
+  RCNT_T sizetable;
+public:
+  RectangleTable(int size) : dictionary(size), sizetable(size) {}
+  ~RectangleTable() {}
+  void push(int ix, int iy, int count) {
+    dictionary[count].push_front(Point<int>(ix,iy));
+    sizetable[count] += 1;
+  }
+  int size(int count) {
+    return sizetable(count);
+  }
+  void per_set(int count, void *data) {
+    for(typename RLST_T::iterator i=dictionary[count].begin(); i!=dictionary[count].end(); ++i) {
+      PREDICATE pred(i,i,data);
+      pred.run();
+    }
+  }
+  void per_set_parallel(int count, int delimite, void *data) {
+    int j=0;
+    void *ret = 0;
+    std::list<PREDICATE> predl;
+    typename RLST_T::iterator s, i;
+    for(i=dictionary[count].begin(); i!=dictionary[count].end(); ++i) {
+      if(j==0) s=i;
+      if(j==delimite) {
+        predl.push_front(PREDICATE(s,i,data));
+        j=0;
+      }
+      ++j;
+    }
+    if(j > 0) {
+      predl.push_front(PREDICATE(s,--i,data));
+      j=0;
+    }
+    std::vector<pthread_t> threads(predl.size());
+    int ii=0;
+    for(typename std::list<PREDICATE>::iterator i=predl.begin(); i!= predl.end(); ++i) {
+      if(pthread_create(&(threads[ii]), NULL, start_predicate, &(*i))) {
+        //std::cerr << "Thread Error" << std::endl;
+      }
+      ++ii;
+    }
+    for(typename std::vector<pthread_t>::iterator i=threads.begin(); i!=threads.end(); ++i) {
+      pthread_join(*i, NULL);
+      //std::cerr << "Thread Joined" << std::endl;
+    }
+  }
+
+  static void *start_predicate(void *pred) {
+    PREDICATE *p = (PREDICATE*)pred;
+    p->run();
+    return NULL;
+  }
+};
+
+template <typename TYPE>
 class GridLayout {
   typedef Point<TYPE> POINT_T;
   typedef PointSet<TYPE> PSET_T;
   typedef PointSequence<TYPE> PSEQ_T;
-  typedef std::vector< std::list< Point<int> > > RDIC_T;
+  typedef RectangleTable<TYPE, CalcRectangleDistance<TYPE> > RDIC_T;
   int grid_size;
   int checkPointPair(POINT_T &p, POINT_T &q) {
     if(p == q) return 1;
@@ -188,12 +338,11 @@ class GridLayout {
     CODE \
   } break;
 #define PCOUNT(V,T,X,Y) V = (T) ? 0 : cr.ref(X,Y)
-#define SETCOUNT(V) cr.ref(i,j) = (V)+1; rd[V].push_back(Point<int>(i,j)); rdcnt[V]+=1;
+#define SETCOUNT(V) cr.ref(i,j) = (V)+1; rd.push(i,j,V);
 #define EACH_CELL(X,Y) for(int X=0; X<set.size(); ++X) for(int Y=0; Y<set.size(); ++Y)
   void listCountRects(PSET_T &set, PSEQ_T &x, PSEQ_T &y) {
     grid<int> cr(set.size());
     RDIC_T rd(set.size());
-    std::vector<int> rdcnt(set.size(), 0);
     int px, py, a, b;
     EACH_CELL(i,j) {
       switch(checkPointPair(x.ref(i), y.ref(j))) {
@@ -211,45 +360,16 @@ class GridLayout {
 #undef PCOUNT
 #undef SETCOUNT
 #undef EACH_CELL
-#define CASE_TEMPLATE(ID,CODE) \
-  case ID : { \
-    px = prevX(i,j,x,y), py = prevY(i,j,x,y); \
-    CODE \
-  } break;
-#define CALC_AXIS(A,IA,X,IX,IY,LOGIC) \
-  X = (LOGIC) ? POINT_T() : tt.ref(IX,IY); \
-  pre##X = (LOGIC) ? POINT_T() : ((dir.ref(IX,IY)!=2) ? x.ref(IX) : y.ref(IY)); \
-  r = IX < 0 ? 0 : x.ref(IX).getX(); \
-  t = IY < 0 ? 0 : y.ref(IY).getY(); \
-  d##X = A.ref(IA).trans(pre##X, POINT_T(r,t), grid_size); \
-  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY));
-#define SET_TABLE(T,S,D) tt.ref(i,j)=T,sum.ref(i,j)=S,dir.ref(i,j)=D
 #define GRID(T, N) grid<T> N(set.size());
   void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
     GRID(POINT_T, tt) GRID(TYPE, sum) GRID(int, dir)
-    int i, j, px,py;
-    TYPE r,t,alen,blen;
-    POINT_T a,b,prea,preb,da,db;
-    for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
-      for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
-        i = v->getX(), j = v->getY();
-        switch(checkPointPair(x.ref(i), y.ref(j))) {
-          CASE_TEMPLATE(1,
-            CALC_AXIS(x,i,a,px,py,px<0||py<0)
-            SET_TABLE(da,alen,1);)
-          CASE_TEMPLATE(2,
-            CALC_AXIS(x,i,a,px,j,px<0)
-            CALC_AXIS(y,j,b,i,py,py<0)
-            if(alen < blen) SET_TABLE(da,alen,1);
-            else SET_TABLE(db,blen,2);)
-        }
-      }
+    CalcDistanceArgments<TYPE> args(x,y,tt,dir,sum,grid_size);
+    for(int i=0; i<set.size(); ++i) {
+      rd.per_set(i, (void*)&args);
+      //rd.per_set_parallel(i, 10000000, (void*)&args);
     }
     applyLayout(set,x,y,tt,dir);
   }
-#undef CASE_TEMPLATE
-#undef CALC_AXIS
-#undef SET_TABLE
 #undef GRID
 #define CASE_TEMPLATE(ID,CODE) \
   case ID : { \
