@@ -13,6 +13,10 @@
     p.print(out); return out; \
   }
 
+#define RIGHT 1
+#define TOP  2
+#define RIGHT_TOP 3
+
 template<typename TYPE>
 class Point {
   TYPE x, y;
@@ -33,16 +37,16 @@ public:
   Point trans(Point q, int grid, int dir) {
     Point t(*this - q), r, tmp; UV(x) UV(y)
     r = Point(ux,uy);
-    if(dir) {
+//    if(dir == TOP || dir == RIGHT_TOP) {
       r.y = uy < vy ? vy : uy;
-    } else {
-      r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
-    }
-    if(dir!=1) {
+//    } else {
+//      r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
+//    }
+//    if(dir == RIGHT || dir == RIGHT_TOP) {
       r.x = ux < vx ? vx : ux;
-    } else {
-      r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
-    }
+//    } else {
+//      r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
+//    }
     //std::cerr << "TRANS " << *this << " / " << r << std::endl;
     return r;
   }
@@ -81,10 +85,14 @@ public:
     for(iterator i = BEGIN; i != END; i++) i->print(out), out << std::endl;
   }
   bool checkIndependent() {
+    bool check = true;
     for(iterator i = BEGIN; i != END; i++)
-      for(iterator j = BEGIN; j != END; j++)
-        if(!(i==j) && (*i==*j)) return false;
-    return true;
+      for(iterator j = i; j != END; j++)
+        if(!(i==j) && (*i==*j)) {
+          check = false;
+          // std::cerr << *i << " : " << *j << std::endl;
+        }
+    return check;
   }
   PointSet &operator=(PointSet &set) {
     for(int i=0; i<SIZE; ++i) AT(i) = set[i];
@@ -166,7 +174,9 @@ class GridLayout {
 #define UNDIPLICATE_AXIS(A,a) \
   prev = a.ref(0).get##A(), bias = 0; \
   for(int i=1; i<set.size(); ++i) { \
-    if(a.ref(i).get##A() + bias == prev) bias += grid_size; \
+    if(a.ref(i).get##A() + bias <= prev) { \
+      bias += grid_size; \
+    } \
     a.ref(i).set##A(a.ref(i).get##A() + bias); \
     prev = a.ref(i).get##A(); \
   }
@@ -236,13 +246,13 @@ class GridLayout {
         i = v->getX(), j = v->getY();
         switch(checkPointPair(x.ref(i), y.ref(j))) {
           CASE_TEMPLATE(1,
-            CALC_AXIS(x,i,a,px,py,px<0||py<0,2)
-            SET_TABLE(da,alen,1);)
+            CALC_AXIS(x,i,a,px,py,px<0||py<0,RIGHT_TOP)
+            SET_TABLE(da,alen,RIGHT_TOP);)
           CASE_TEMPLATE(2,
-            CALC_AXIS(x,i,a,px,j,px<0,0)
-            CALC_AXIS(y,j,b,i,py,py<0,1)
-            if(alen < blen) SET_TABLE(da,alen,1);
-            else SET_TABLE(db,blen,2);)
+            CALC_AXIS(x,i,a,px,j,px<0,RIGHT)
+            CALC_AXIS(y,j,b,i,py,py<0,TOP)
+            if(alen < blen) SET_TABLE(da,alen,RIGHT);
+            else SET_TABLE(db,blen,TOP);)
         }
       }
     }
@@ -258,7 +268,7 @@ class GridLayout {
     CODE \
   } break;
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
-  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> dir) {
+  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
     std::list<POINT_T*> ap;
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
@@ -270,7 +280,7 @@ class GridLayout {
         CASE_TEMPLATE(1,
           (PUSH(x),ix=px,iy=py);)
         CASE_TEMPLATE(2,
-          if(dir.ref(ix,iy)!=2) (PUSH(x),ix=px);
+          if(dir.ref(ix,iy)!=TOP) (PUSH(x),ix=px);
           else (PUSH(y),iy=py);)
       }
       //std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
@@ -286,8 +296,15 @@ public:
   ~GridLayout() {}
   PSET_T &match(PSET_T &p) {
     PSEQ_T sortx(p, true), sorty(p, false);
-    undiplicate(p, sortx, sorty);
+    //undiplicate(p, sortx, sorty);
     listCountRects(p, sortx, sorty);
+    //if(!p.checkIndependent()) {
+    //  std::cerr << "NOT INDEPENDENT, UNDIPLICATING..." << std::endl;
+    //  {
+    //    PSEQ_T sortx(p, true), sorty(p, false);
+    //    undiplicate(p, sortx, sorty);
+    //  }
+    //}
     return p;
   }
   bool checkMatch(PSET_T &p) {
@@ -324,5 +341,6 @@ int main(int argc, char **argv) {
   }
   if(!ApplyGridLayout<int>(atoi(argv[1]), std::cin, std::cout)) {
     std::cerr << "GridLayout Failed." << std::endl;
+  }
   return 0;
 }
