@@ -166,8 +166,9 @@ class GridLayout {
   typedef PointSequence<TYPE> PSEQ_T;
   typedef std::vector< std::list< Point<int> > > RDIC_T;
   int grid_size;
-  int checkPointPair(POINT_T &p, POINT_T &q) {
-    if(p == q) return 1;
+  int checkPointPair(int i, int j, PSEQ_T &x, PSEQ_T &y) {
+    if(x[i] == y[j]) return 1;
+    POINT_T &p = x.ref(i), &q = y.ref(j);
     if(p.getX() >= q.getX() && p.getY() <= q.getY()) return 2;
     return 0;
   }
@@ -209,7 +210,7 @@ class GridLayout {
     std::vector<int> rdcnt(set.size(), 0);
     int px, py, a, b;
     EACH_CELL(i,j) {
-      switch(checkPointPair(x.ref(i), y.ref(j))) {
+      switch(checkPointPair(i,j,x,y)) {
         CASE_TEMPLATE(1,
           PCOUNT(a, px<0 || py<0, px, py);
           SETCOUNT(a);)
@@ -244,7 +245,16 @@ class GridLayout {
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
         i = v->getX(), j = v->getY();
-        switch(checkPointPair(x.ref(i), y.ref(j))) {
+        // multiple-points hook
+        if(x[i] != y[j] && x.ref(i) == y.ref(j)) {
+          // calc-distance block once only
+          if(!dir.ref(i,j)) {
+            // execute points in block
+          }
+          //std::cerr << "multiple-points block discovered." << std::endl;
+          continue;
+        }
+        switch(checkPointPair(i,j,x,y)) {
           CASE_TEMPLATE(1,
             CALC_AXIS(x,i,a,px,py,px<0||py<0,RIGHT_TOP)
             SET_TABLE(da,alen,RIGHT_TOP);)
@@ -276,7 +286,7 @@ class GridLayout {
     while(ix >= 0 && iy >= 0) {
       trans = tt.ref(ix, iy);
       if(!dir.ref(ix,iy)) return;
-      switch(checkPointPair(x.ref(ix), y.ref(iy))) {
+      switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
           (PUSH(x),ix=px,iy=py);)
         CASE_TEMPLATE(2,
@@ -296,6 +306,8 @@ public:
   ~GridLayout() {}
   PSET_T &match(PSET_T &p) {
     PSEQ_T sortx(p, true), sorty(p, false);
+    std::cerr << "SORT X:" << std::endl << sortx << std::endl;
+    std::cerr << "SORT Y:" << std::endl << sorty << std::endl;
     //undiplicate(p, sortx, sorty);
     listCountRects(p, sortx, sorty);
     //if(!p.checkIndependent()) {
@@ -319,8 +331,8 @@ template<typename TYPE>
 bool ApplyGridLayout(int grid, std::istream &in, std::ostream &out) {
   GridLayout<TYPE> gridlayout(grid);
   PointSet<TYPE> pointset(in);
-  if(!pointset.checkIndependent()) return false;
-  if(gridlayout.checkMatch(pointset)) return false;
+  //if(!pointset.checkIndependent()) return false;
+  //if(gridlayout.checkMatch(pointset)) return false;
   gridlayout.match(pointset);
   out << pointset;
   if(!pointset.checkIndependent()) {
