@@ -9,8 +9,8 @@ public class CodeAttribute{
 	private VMCode[] mnemonic;
 	private int max_stack;
 	private int max_local;
-
-	private boolean FOCUS = false;
+	
+	private boolean view = true;
 	private int x = -1;
 	private int y = -1;
 	private int hue = 0;
@@ -99,6 +99,9 @@ public class CodeAttribute{
 		if(BIAS >1) BIAS = 1.0;
 		else if(BIAS < 0) BIAS = 0.0;
 	}
+	public void setView(boolean b){
+		view = b;
+	}
 	//set (x,y)
 	public void setXY(int X, int Y){
 		x = X;
@@ -176,6 +179,10 @@ public class CodeAttribute{
 	//get max_local
 	public int getMaxLocal(){
 		return max_local;
+	}
+	//get view
+	public boolean isView(){
+		return view;
 	}
 	
 	//print jump

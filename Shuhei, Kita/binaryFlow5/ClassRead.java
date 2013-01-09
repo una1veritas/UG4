@@ -24,13 +24,14 @@ public class ClassRead{
 	private int NUMBER = 0;
 	
 	//Code list
-	private List<Integer> view = new ArrayList<Integer>();
+	private boolean view = true;
     private CodeAttribute[] codes;
     private int focus = 1;
     private int hue = 0;
     private int alpha = 50;
    
 	private boolean onMouse = false;
+	private boolean onName = false;
     
 	//constract---------------------------------------------------
 	ClassRead(String Path, String Name, int Id){
@@ -161,13 +162,12 @@ public class ClassRead{
 	public void setOnMouse(boolean b){
 		onMouse = b;
 	}
-	//set viewList
-	public void setViewList(int d){
-		view.add(new Integer(d));
+	public void setOnName(boolean b){
+		onName = b;
 	}
-	//clear viewList
-	public void clearViewList(){
-		view = new ArrayList<Integer>();
+	//set view
+	public void setView(boolean b){
+		view = b;
 	}
 	///GETTER--------------------------------------
 	//get color
@@ -198,7 +198,10 @@ public class ClassRead{
 	public boolean getOnMouse(){
 		return onMouse;
 	}
-	public List<Integer> getViewList(){
+	public boolean getOnName(){
+		return onName;
+	}
+	public boolean isView(){
 		return view;
 	}
 	///GETTER----END----------------------------------
