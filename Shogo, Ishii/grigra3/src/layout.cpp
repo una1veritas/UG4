@@ -17,20 +17,6 @@
 #define TOP  2
 #define RIGHT_TOP 3
 
-int sumMultiPointsDistance(int n) {
-  int g = 1;
-  int sum = 0;
-  while(1) {
-    if(n < g) {
-      return sum + n * (g-1);
-    } else {
-      n -= g;
-      sum += g * (g-1);
-      ++g;
-    }
-  }
-}
-
 template<typename TYPE>
 class Point {
   TYPE x, y;
@@ -71,10 +57,34 @@ public:
   Point &operator =(Point p) { x=p.x; y=p.y; return *this; }
   Point operator +(Point &p) { Point q(x + p.x, y + p.y); return q; }
   Point &operator +=(Point p) { x += p.x; y += p.y; return *this; }
+  Point &operator -=(Point p) { x -= p.x; y -= p.y; return *this; }
   Point operator -(Point &p) { Point q(x - p.x, y - p.y); return q; }
   void print(std::ostream &out) { out << x << " " << y; }
 };
 DEFINE_STREAM_PRINT(Point)
+
+int sumMultiPointsDistance(int n) {
+  int g = 1;
+  int sum = 0;
+  while(1) {
+    if(n < g) {
+      return sum + n * (g-1);
+    } else {
+      n -= g;
+      sum += g * (g-1);
+      ++g;
+    }
+  }
+}
+
+template<typename TYPE>
+Point<TYPE> rectMultiPoints(int n) {
+  Point<TYPE> r(0,0);
+  int g=0;
+  while(--n <= 0) {
+  }
+  return r;
+}
 
 template<typename TYPE>
 class PointSet : public std::vector<Point<TYPE> > {
@@ -191,7 +201,7 @@ class GridLayout {
     if(0 <= i-1 && s.ref(i) == s.ref(i-1)) return true;
     return false;
   }
-  void reqindMultiPoints(int i, PSEQ_T &s) {
+  int rewindMultiPoints(int i, PSEQ_T &s) {
     while(0 <= i-1 && s.ref(i) == s.ref(i-1)) --i;
     return i;
   }
@@ -262,8 +272,8 @@ class GridLayout {
   X = (LOGIC) ? POINT_T() : tt.ref(IX,IY); \
   pre##X = (LOGIC) ? POINT_T() : ((dir.ref(IX,IY)!=2) ? x.ref(IX) : y.ref(IY)); \
   d##X = A.ref(IA).trans(pre##X, grid_size, D); \
-  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY))
-#define SET_TABLE(T,S,D) tt.ref(i,j)=T,sum.ref(i,j)=S,dir.ref(i,j)=D
+  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY)) + (multi##A ? m##A##len : 0)
+#define SET_TABLE(T,S,D) tt.ref(i,j)=T, sum.ref(i,j)=S,dir.ref(i,j)=D
 #define GRID(T, N) grid<T> N(set.size());
   void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
     GRID(POINT_T, tt) GRID(TYPE, sum) GRID(int, dir)
@@ -274,7 +284,6 @@ class GridLayout {
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
         i = v->getX(), j = v->getY();
-        // multiple-points hook
         multix = checkMultiPoints(i, x);
         multiy = checkMultiPoints(j, y);
         if(multix) {
@@ -285,14 +294,13 @@ class GridLayout {
           j = rewindMultiPoints(j, y);
           mylen = sumMultiPointsDistance(multiPointsLen(j, y)) * grid_size;
         }
-        // TODO
         switch(checkPointPair(i,j,x,y)) {
           CASE_TEMPLATE(1,
-            CALC_AXIS(x,i,a,px,py,px<0||py<0,RIGHT_TOP)
+            CALC_AXIS(x,i,a,px,py,px<0||py<0,RIGHT_TOP);
             SET_TABLE(da,alen,RIGHT_TOP);)
           CASE_TEMPLATE(2,
-            CALC_AXIS(x,i,a,px,j,px<0,RIGHT)
-            CALC_AXIS(y,j,b,i,py,py<0,TOP)
+            CALC_AXIS(x,i,a,px,j,px<0,RIGHT);
+            CALC_AXIS(y,j,b,i,py,py<0,TOP);
             if(alen < blen) SET_TABLE(da,alen,RIGHT);
             else SET_TABLE(db,blen,TOP);)
         }
@@ -310,21 +318,54 @@ class GridLayout {
     CODE \
   } break;
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
+#define MULTI_PUSH(A) { \
+    if(multi##A) { \
+      int it = i##A, g = 0; \
+      POINT_T rect = rectMultiPoints<TYPE>(0); \
+      POINT_T bias = POINT_T(); \
+      while(A.ref(i##A) == A.ref(it)) { \
+        tmp[A[it]] += bias; \
+        if(bias.getX() <= 0) { \
+          ++g; \
+          bias.setX(bias.getX() + grid_size * g); \
+          bias.setY(0); \
+        } else { \
+          bias.setX(bias.getX() - grid_size); \
+          bias.setY(bias.getY() + grid_size); \
+        } \
+        ap.push_front(&tmp[A[it]]); \
+        ++it; \
+      } \
+      typename std::list<POINT_T*>::iterator itr = ap.begin(); \
+      while(i##A <= --it) { \
+        **itr -= rect; \
+        --itr; \
+      } \
+      trans += rect; \
+    } else { \
+      PUSH(A); \
+    } \
+  }
   void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
     std::list<POINT_T*> ap;
+    bool multix, multiy;
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
     PSET_T tmp(set);
     while(ix >= 0 && iy >= 0) {
-      trans = tt.ref(ix, iy);
       if(!dir.ref(ix,iy)) return;
       // multiple-point block
+      multix = checkMultiPoints(ix, x);
+      multiy = checkMultiPoints(iy, y);
+      if(multix) { ix = rewindMultiPoints(ix, x); }
+      if(multiy) { iy = rewindMultiPoints(iy, y); }
+      trans = tt.ref(ix, iy);
       switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
-          (PUSH(x),ix=px,iy=py);)
+          MULTI_PUSH(x); ix=px; iy=py;)
         CASE_TEMPLATE(2,
-          if(dir.ref(ix,iy)!=TOP) (PUSH(x),ix=px);
-          else (PUSH(y),iy=py);)
+          if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
+          else { MULTI_PUSH(y) iy=py; })
       }
       //std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
       for(typename std::list<POINT_T*>::iterator i=ap.begin(); i!=ap.end(); ++i)
@@ -334,6 +375,7 @@ class GridLayout {
   }
 #undef CASE_TEMPLATE
 #undef PUSH
+#undef MULTI_PUSH
 public:
   GridLayout(int grid_size) : grid_size(grid_size) {}
   ~GridLayout() {}
