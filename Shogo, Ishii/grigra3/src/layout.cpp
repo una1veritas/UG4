@@ -80,8 +80,18 @@ int sumMultiPointsDistance(int n) {
 template<typename TYPE>
 Point<TYPE> rectMultiPoints(int n) {
   Point<TYPE> r(0,0);
-  int g=0;
+  int g=0, s=0;
   while(--n <= 0) {
+    if(!g) {
+      r.setX(r.getX() + 1);
+      g = s + 1;
+      ++s;
+    } else {
+      if(g==1) {
+        r.setY(r.getY() + 1);
+      }
+      --g;
+    }
   }
   return r;
 }
@@ -320,10 +330,12 @@ class GridLayout {
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
 #define MULTI_PUSH(A) { \
     if(multi##A) { \
+      std::cerr << "Multi-Points Found! " << ix << " " << iy << std::endl; \
       int it = i##A, g = 0; \
-      POINT_T rect = rectMultiPoints<TYPE>(0); \
+      POINT_T rect = rectMultiPoints<TYPE>(multiPointsLen(it,A)); \
       POINT_T bias = POINT_T(); \
       while(A.ref(i##A) == A.ref(it)) { \
+        std::cerr << "a"; \
         tmp[A[it]] += bias; \
         if(bias.getX() <= 0) { \
           ++g; \
@@ -338,9 +350,11 @@ class GridLayout {
       } \
       typename std::list<POINT_T*>::iterator itr = ap.begin(); \
       while(i##A <= --it) { \
+        std::cerr << "b"; \
         **itr -= rect; \
-        --itr; \
+        ++itr; \
       } \
+      std::cerr << "c"; \
       trans += rect; \
     } else { \
       PUSH(A); \
@@ -353,12 +367,12 @@ class GridLayout {
     POINT_T trans;
     PSET_T tmp(set);
     while(ix >= 0 && iy >= 0) {
-      if(!dir.ref(ix,iy)) return;
       // multiple-point block
       multix = checkMultiPoints(ix, x);
       multiy = checkMultiPoints(iy, y);
       if(multix) { ix = rewindMultiPoints(ix, x); }
       if(multiy) { iy = rewindMultiPoints(iy, y); }
+      if(!dir.ref(ix,iy)) return;
       trans = tt.ref(ix, iy);
       switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
@@ -367,7 +381,7 @@ class GridLayout {
           if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
           else { MULTI_PUSH(y) iy=py; })
       }
-      //std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
+      std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
       for(typename std::list<POINT_T*>::iterator i=ap.begin(); i!=ap.end(); ++i)
       { *(*i) += trans; }
     }
