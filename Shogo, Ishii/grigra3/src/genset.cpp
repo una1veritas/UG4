@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <stdlib.h>
+#include <math.h>
 
 bool is_member(std::vector<int> &v, int m) {
   for(std::vector<int>::iterator i=v.begin(); i!=v.end(); i++) {
@@ -13,8 +14,8 @@ bool is_member(std::vector<int> &v, int m) {
 
 int nrand(int n) {
   int a = 0;
-  while(n--) { a += rand(); }
-  return a;
+  while(n--) { a += (RAND_MAX / 2) - rand(); }
+  return abs(a);
 }
 
 int main(int argc, char **argv) {
