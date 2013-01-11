@@ -13,6 +13,10 @@
     p.print(out); return out; \
   }
 
+#define RIGHT 1
+#define TOP  2
+#define RIGHT_TOP 3
+
 template<typename TYPE>
 class Point {
   TYPE x, y;
@@ -33,16 +37,16 @@ public:
   Point trans(Point q, int grid, int dir) {
     Point t(*this - q), r, tmp; UV(x) UV(y)
     r = Point(ux,uy);
-    if(dir) {
+//    if(dir == TOP || dir == RIGHT_TOP) {
       r.y = uy < vy ? vy : uy;
-    } else {
-      r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
-    }
-    if(dir!=1) {
+//    } else {
+//      r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
+//    }
+//    if(dir == RIGHT || dir == RIGHT_TOP) {
       r.x = ux < vx ? vx : ux;
-    } else {
-      r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
-    }
+//    } else {
+//      r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
+//    }
     //std::cerr << "TRANS " << *this << " / " << r << std::endl;
     return r;
   }
@@ -53,10 +57,44 @@ public:
   Point &operator =(Point p) { x=p.x; y=p.y; return *this; }
   Point operator +(Point &p) { Point q(x + p.x, y + p.y); return q; }
   Point &operator +=(Point p) { x += p.x; y += p.y; return *this; }
+  Point &operator -=(Point p) { x -= p.x; y -= p.y; return *this; }
   Point operator -(Point &p) { Point q(x - p.x, y - p.y); return q; }
   void print(std::ostream &out) { out << x << " " << y; }
 };
 DEFINE_STREAM_PRINT(Point)
+
+int sumMultiPointsDistance(int n) {
+  int g = 1;
+  int sum = 0;
+  while(1) {
+    if(n < g) {
+      return sum + n * (g-1);
+    } else {
+      n -= g;
+      sum += g * (g-1);
+      ++g;
+    }
+  }
+}
+
+template<typename TYPE>
+Point<TYPE> rectMultiPoints(int n) {
+  Point<TYPE> r(0,0);
+  int g=0, s=0;
+  while(--n <= 0) {
+    if(!g) {
+      r.setX(r.getX() + 1);
+      g = s + 1;
+      ++s;
+    } else {
+      if(g==1) {
+        r.setY(r.getY() + 1);
+      }
+      --g;
+    }
+  }
+  return r;
+}
 
 template<typename TYPE>
 class PointSet : public std::vector<Point<TYPE> > {
@@ -81,10 +119,14 @@ public:
     for(iterator i = BEGIN; i != END; i++) i->print(out), out << std::endl;
   }
   bool checkIndependent() {
+    bool check = true;
     for(iterator i = BEGIN; i != END; i++)
-      for(iterator j = BEGIN; j != END; j++)
-        if(!(i==j) && (*i==*j)) return false;
-    return true;
+      for(iterator j = i; j != END; j++)
+        if(!(i==j) && (*i==*j)) {
+          check = false;
+          // std::cerr << *i << " : " << *j << std::endl;
+        }
+    return check;
   }
   PointSet &operator=(PointSet &set) {
     for(int i=0; i<SIZE; ++i) AT(i) = set[i];
@@ -158,15 +200,32 @@ class GridLayout {
   typedef PointSequence<TYPE> PSEQ_T;
   typedef std::vector< std::list< Point<int> > > RDIC_T;
   int grid_size;
-  int checkPointPair(POINT_T &p, POINT_T &q) {
-    if(p == q) return 1;
+  int checkPointPair(int i, int j, PSEQ_T &x, PSEQ_T &y) {
+    if(x[i] == y[j]) return 1;
+    POINT_T &p = x.ref(i), &q = y.ref(j);
     if(p.getX() >= q.getX() && p.getY() <= q.getY()) return 2;
     return 0;
+  }
+  bool checkMultiPoints(int i, PSEQ_T &s) {
+    if(i+1 < s.size() && s.ref(i) == s.ref(i+1)) return true;
+    if(0 <= i-1 && s.ref(i) == s.ref(i-1)) return true;
+    return false;
+  }
+  int rewindMultiPoints(int i, PSEQ_T &s) {
+    while(0 <= i-1 && s.ref(i) == s.ref(i-1)) --i;
+    return i;
+  }
+  int multiPointsLen(int i, PSEQ_T &s) {
+    int j = i;
+    while(j+1 < s.size() && s.ref(i) == s.ref(j)) ++j;
+    return j - i;
   }
 #define UNDIPLICATE_AXIS(A,a) \
   prev = a.ref(0).get##A(), bias = 0; \
   for(int i=1; i<set.size(); ++i) { \
-    if(a.ref(i).get##A() + bias == prev) bias += grid_size; \
+    if(a.ref(i).get##A() + bias <= prev) { \
+      bias += grid_size; \
+    } \
     a.ref(i).set##A(a.ref(i).get##A() + bias); \
     prev = a.ref(i).get##A(); \
   }
@@ -199,7 +258,7 @@ class GridLayout {
     std::vector<int> rdcnt(set.size(), 0);
     int px, py, a, b;
     EACH_CELL(i,j) {
-      switch(checkPointPair(x.ref(i), y.ref(j))) {
+      switch(checkPointPair(i,j,x,y)) {
         CASE_TEMPLATE(1,
           PCOUNT(a, px<0 || py<0, px, py);
           SETCOUNT(a);)
@@ -223,26 +282,37 @@ class GridLayout {
   X = (LOGIC) ? POINT_T() : tt.ref(IX,IY); \
   pre##X = (LOGIC) ? POINT_T() : ((dir.ref(IX,IY)!=2) ? x.ref(IX) : y.ref(IY)); \
   d##X = A.ref(IA).trans(pre##X, grid_size, D); \
-  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY));
-#define SET_TABLE(T,S,D) tt.ref(i,j)=T,sum.ref(i,j)=S,dir.ref(i,j)=D
+  X##len = d##X.length() + ((LOGIC) ? 0 : sum.ref(IX,IY)) + (multi##A ? m##A##len : 0)
+#define SET_TABLE(T,S,D) tt.ref(i,j)=T, sum.ref(i,j)=S,dir.ref(i,j)=D
 #define GRID(T, N) grid<T> N(set.size());
   void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
     GRID(POINT_T, tt) GRID(TYPE, sum) GRID(int, dir)
+    bool multix, multiy;
     int i, j, px,py;
-    TYPE alen,blen;
+    TYPE alen,blen, mxlen, mylen;
     POINT_T a,b,prea,preb,da,db;
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
         i = v->getX(), j = v->getY();
-        switch(checkPointPair(x.ref(i), y.ref(j))) {
+        multix = checkMultiPoints(i, x);
+        multiy = checkMultiPoints(j, y);
+        if(multix) {
+          i = rewindMultiPoints(i, x);
+          mxlen = sumMultiPointsDistance(multiPointsLen(i, x)) * grid_size;
+        }
+        if(multiy) {
+          j = rewindMultiPoints(j, y);
+          mylen = sumMultiPointsDistance(multiPointsLen(j, y)) * grid_size;
+        }
+        switch(checkPointPair(i,j,x,y)) {
           CASE_TEMPLATE(1,
-            CALC_AXIS(x,i,a,px,py,px<0||py<0,2)
-            SET_TABLE(da,alen,1);)
+            CALC_AXIS(x,i,a,px,py,px<0||py<0,RIGHT_TOP);
+            SET_TABLE(da,alen,RIGHT_TOP);)
           CASE_TEMPLATE(2,
-            CALC_AXIS(x,i,a,px,j,px<0,0)
-            CALC_AXIS(y,j,b,i,py,py<0,1)
-            if(alen < blen) SET_TABLE(da,alen,1);
-            else SET_TABLE(db,blen,2);)
+            CALC_AXIS(x,i,a,px,j,px<0,RIGHT);
+            CALC_AXIS(y,j,b,i,py,py<0,TOP);
+            if(alen < blen) SET_TABLE(da,alen,RIGHT);
+            else SET_TABLE(db,blen,TOP);)
         }
       }
     }
@@ -258,22 +328,60 @@ class GridLayout {
     CODE \
   } break;
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
-  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> dir) {
+#define MULTI_PUSH(A) { \
+    if(multi##A) { \
+      std::cerr << "Multi-Points Found! " << ix << " " << iy << std::endl; \
+      int it = i##A, g = 0, l = multiPointsLen(it,A); \
+      POINT_T rect = rectMultiPoints<TYPE>(l); \
+      POINT_T bias = POINT_T(); \
+      while((it - i##A <= l) && A.ref(i##A) == A.ref(it)) { \
+        std::cerr << "a"; \
+        tmp[A[it]] += bias; \
+        if(bias.getX() <= 0) { \
+          ++g; \
+          bias.setX(bias.getX() + grid_size * g); \
+          bias.setY(0); \
+        } else { \
+          bias.setX(bias.getX() - grid_size); \
+          bias.setY(bias.getY() + grid_size); \
+        } \
+        ap.push_front(&tmp[A[it]]); \
+        ++it; \
+      } \
+      typename std::list<POINT_T*>::iterator itr = ap.begin(); \
+      while(i##A <= --it) { \
+        std::cerr << "b"; \
+        **itr -= rect; \
+        ++itr; \
+      } \
+      std::cerr << "c"; \
+      trans += rect; \
+    } else { \
+      PUSH(A); \
+    } \
+  }
+  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
     std::list<POINT_T*> ap;
+    bool multix, multiy;
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
     PSET_T tmp(set);
     while(ix >= 0 && iy >= 0) {
-      trans = tt.ref(ix, iy);
+      // multiple-point block
+      multix = checkMultiPoints(ix, x);
+      multiy = checkMultiPoints(iy, y);
+      if(multix) { ix = rewindMultiPoints(ix, x); }
+      if(multiy) { iy = rewindMultiPoints(iy, y); }
       if(!dir.ref(ix,iy)) return;
-      switch(checkPointPair(x.ref(ix), y.ref(iy))) {
+      trans = tt.ref(ix, iy);
+      switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
-          (PUSH(x),ix=px,iy=py);)
+          MULTI_PUSH(x); ix=px; iy=py;)
         CASE_TEMPLATE(2,
-          if(dir.ref(ix,iy)!=2) (PUSH(x),ix=px);
-          else (PUSH(y),iy=py);)
+          if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
+          else { MULTI_PUSH(y) iy=py; })
       }
-      //std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
+      std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
       for(typename std::list<POINT_T*>::iterator i=ap.begin(); i!=ap.end(); ++i)
       { *(*i) += trans; }
     }
@@ -281,13 +389,23 @@ class GridLayout {
   }
 #undef CASE_TEMPLATE
 #undef PUSH
+#undef MULTI_PUSH
 public:
   GridLayout(int grid_size) : grid_size(grid_size) {}
   ~GridLayout() {}
   PSET_T &match(PSET_T &p) {
     PSEQ_T sortx(p, true), sorty(p, false);
-    undiplicate(p, sortx, sorty);
+    std::cerr << "SORT X:" << std::endl << sortx << std::endl;
+    std::cerr << "SORT Y:" << std::endl << sorty << std::endl;
+    //undiplicate(p, sortx, sorty);
     listCountRects(p, sortx, sorty);
+    //if(!p.checkIndependent()) {
+    //  std::cerr << "NOT INDEPENDENT, UNDIPLICATING..." << std::endl;
+    //  {
+    //    PSEQ_T sortx(p, true), sorty(p, false);
+    //    undiplicate(p, sortx, sorty);
+    //  }
+    //}
     return p;
   }
   bool checkMatch(PSET_T &p) {
@@ -302,8 +420,8 @@ template<typename TYPE>
 bool ApplyGridLayout(int grid, std::istream &in, std::ostream &out) {
   GridLayout<TYPE> gridlayout(grid);
   PointSet<TYPE> pointset(in);
-  if(!pointset.checkIndependent()) return false;
-  if(gridlayout.checkMatch(pointset)) return false;
+  //if(!pointset.checkIndependent()) return false;
+  //if(gridlayout.checkMatch(pointset)) return false;
   gridlayout.match(pointset);
   out << pointset;
   if(!pointset.checkIndependent()) {
@@ -324,5 +442,6 @@ int main(int argc, char **argv) {
   }
   if(!ApplyGridLayout<int>(atoi(argv[1]), std::cin, std::cout)) {
     std::cerr << "GridLayout Failed." << std::endl;
+  }
   return 0;
 }
