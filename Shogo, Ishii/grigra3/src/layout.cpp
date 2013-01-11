@@ -331,10 +331,10 @@ class GridLayout {
 #define MULTI_PUSH(A) { \
     if(multi##A) { \
       std::cerr << "Multi-Points Found! " << ix << " " << iy << std::endl; \
-      int it = i##A, g = 0; \
-      POINT_T rect = rectMultiPoints<TYPE>(multiPointsLen(it,A)); \
+      int it = i##A, g = 0, l = multiPointsLen(it,A); \
+      POINT_T rect = rectMultiPoints<TYPE>(l); \
       POINT_T bias = POINT_T(); \
-      while(A.ref(i##A) == A.ref(it)) { \
+      while((it - i##A <= l) && A.ref(i##A) == A.ref(it)) { \
         std::cerr << "a"; \
         tmp[A[it]] += bias; \
         if(bias.getX() <= 0) { \
