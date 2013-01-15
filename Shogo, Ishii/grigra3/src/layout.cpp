@@ -63,37 +63,23 @@ public:
 };
 DEFINE_STREAM_PRINT(Point)
 
-int sumMultiPointsDistance(int n) {
-  int g = 1;
-  int sum = 0;
-  while(1) {
-    if(n < g) {
-      return sum + n * (g-1);
-    } else {
-      n -= g;
-      sum += g * (g-1);
-      ++g;
-    }
+template<typename TYPE>
+Point<TYPE> rectMultiPoints(int n, TYPE grid_size) {
+  int ix = 0, iy = 0;
+  for(int j=1,k=1; j<n; ++ix) {
+    k += 2;
+    j += k;
   }
+  for(int j=2,k=2; j<n; ++iy) {
+    k += 2;
+    j += k;
+  }
+  return Point<TYPE>(ix * grid_size, iy * grid_size);
 }
 
 template<typename TYPE>
-Point<TYPE> rectMultiPoints(int n) {
-  Point<TYPE> r(0,0);
-  int g=0, s=0;
-  while(--n <= 0) {
-    if(!g) {
-      r.setX(r.getX() + 1);
-      g = s + 1;
-      ++s;
-    } else {
-      if(g==1) {
-        r.setY(r.getY() + 1);
-      }
-      --g;
-    }
-  }
-  return r;
+TYPE sumMultiPointsDistance(int n, TYPE grid_size) {
+  return rectMultiPoints(n, grid_size).length();
 }
 
 template<typename TYPE>
@@ -298,11 +284,11 @@ class GridLayout {
         multiy = checkMultiPoints(j, y);
         if(multix) {
           i = rewindMultiPoints(i, x);
-          mxlen = sumMultiPointsDistance(multiPointsLen(i, x)) * grid_size;
+          mxlen = sumMultiPointsDistance(multiPointsLen(i, x), grid_size);
         }
         if(multiy) {
           j = rewindMultiPoints(j, y);
-          mylen = sumMultiPointsDistance(multiPointsLen(j, y)) * grid_size;
+          mylen = sumMultiPointsDistance(multiPointsLen(j, y), grid_size);
         }
         switch(checkPointPair(i,j,x,y)) {
           CASE_TEMPLATE(1,
@@ -331,30 +317,33 @@ class GridLayout {
 #define MULTI_PUSH(A) { \
     if(multi##A) { \
       std::cerr << "Multi-Points Found! " << ix << " " << iy << std::endl; \
-      int it = i##A, g = 0, l = multiPointsLen(it,A); \
-      POINT_T rect = rectMultiPoints<TYPE>(l); \
-      POINT_T bias = POINT_T(); \
+      int it = i##A, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,A); \
+      std::cerr << "size : " << l << std::endl; \
+      POINT_T rect = rectMultiPoints<TYPE>(l, grid_size); \
       while((it - i##A <= l) && A.ref(i##A) == A.ref(it)) { \
-        std::cerr << "a"; \
-        tmp[A[it]] += bias; \
-        if(bias.getX() <= 0) { \
-          ++g; \
-          bias.setX(bias.getX() + grid_size * g); \
-          bias.setY(0); \
-        } else { \
-          bias.setX(bias.getX() - grid_size); \
-          bias.setY(bias.getY() + grid_size); \
-        } \
+        std::cerr << rc << " " << tc << std::endl; \
+        tmp[A[it]] += POINT_T(rc * grid_size, tc * grid_size); \
         ap.push_front(&tmp[A[it]]); \
+        if(tc == tb) { \
+          if(rc == 0) { \
+            ++rb; \
+            ++tb; \
+            rc = rb; \
+            tc = 0; \
+          } else { \
+            --rc; \
+          } \
+        } else { \
+          --tc; \
+        } \
         ++it; \
       } \
       typename std::list<POINT_T*>::iterator itr = ap.begin(); \
       while(i##A <= --it) { \
-        std::cerr << "b"; \
         **itr -= rect; \
         ++itr; \
       } \
-      std::cerr << "c"; \
+      std::cerr << "Rect : " << rect << std::endl; \
       trans += rect; \
     } else { \
       PUSH(A); \
@@ -422,6 +411,7 @@ bool ApplyGridLayout(int grid, std::istream &in, std::ostream &out) {
   PointSet<TYPE> pointset(in);
   //if(!pointset.checkIndependent()) return false;
   //if(gridlayout.checkMatch(pointset)) return false;
+  std::cerr << pointset << std::endl;
   gridlayout.match(pointset);
   out << pointset;
   if(!pointset.checkIndependent()) {
