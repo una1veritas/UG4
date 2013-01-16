@@ -128,17 +128,19 @@ DEFINE_STREAM_PRINT(PointSet)
 template<typename TYPE>
 class PointSequence : public std::vector<int> {
   typedef typename std::vector<int>::iterator iterator;
-#define DEFINE_COMPARE(A) \
+#define DEFINE_COMPARE(A,B) \
   class compare_##A { \
     PointSet<TYPE> &set; \
   public: \
     compare_##A (PointSet<TYPE> &set) : set(set) {} \
     bool operator ()(const TYPE &a, const TYPE &b) const { \
+      if(set[a].get##A() == set[b].get##A()) \
+        return set[a].get##B() > set[b].get##B(); \
       return set[a].get##A() < set[b].get##A(); \
     } \
   };
-  DEFINE_COMPARE(X)
-  DEFINE_COMPARE(Y)
+  DEFINE_COMPARE(X,Y)
+  DEFINE_COMPARE(Y,X)
 #undef DEFINE_COMPARE
 #define BEGIN std::vector<int>::begin()
 #define END std::vector<int>::end()
@@ -172,7 +174,7 @@ public:
   void print(std::ostream &out) {
     int j=0;
     for(iterator i=std::vector<TYPE>::begin(); i!=std::vector<TYPE>::end(); i++) {
-      out << "  " << *i << std::endl;
+      out << "  <" << *i << ">";
       if(++j % grid_size == 0) out << std::endl;
     }
   }
@@ -223,8 +225,10 @@ class GridLayout {
 #undef UNDIPLICATE_AXIS
 #define DEFINE_PREV(A1,a1,A2,a2) \
   int prev##A1(int ix, int iy, PSEQ_T &x, PSEQ_T &y) { \
-    int t = a2.ref(i##a2).get##A2(); \
-    do { if(i##a1 <= 0) return -1; } while(t < a1.ref(--i##a1).get##A2()); \
+    TYPE t = a2.ref(i##a2).get##A2(); \
+    do { \
+      if(i##a1 <= 0) return -1; \
+    } while(t < a1.ref(--i##a1).get##A2()); \
     return i##a1; \
   }
   DEFINE_PREV(X,x,Y,y)
@@ -310,7 +314,6 @@ class GridLayout {
 #undef GRID
 #define CASE_TEMPLATE(ID,CODE) \
   case ID : { \
-    px = prevX(ix,iy,x,y), py = prevY(ix,iy,x,y); \
     CODE \
   } break;
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
@@ -334,7 +337,7 @@ class GridLayout {
             --rc; \
           } \
         } else { \
-          --tc; \
+          ++tc; \
         } \
         ++it; \
       } \
@@ -355,14 +358,29 @@ class GridLayout {
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
     PSET_T tmp(set);
+    std::cerr << tt << std::endl;
+    std::cerr << dir << std::endl;
     while(ix >= 0 && iy >= 0) {
+      std::cerr << "Apply! : " << ix << " " << iy << std::endl;
       // multiple-point block
       multix = checkMultiPoints(ix, x);
       multiy = checkMultiPoints(iy, y);
-      if(multix) { ix = rewindMultiPoints(ix, x); }
-      if(multiy) { iy = rewindMultiPoints(iy, y); }
-      if(!dir.ref(ix,iy)) return;
+      if(multix) {
+        std::cerr << "multi-x! " << ix << " " << iy << std::endl;
+        ix = rewindMultiPoints(ix, x);
+      }
+      if(multiy) {
+        std::cerr << "multi-y! " << ix << " " << iy << std::endl;
+        iy = rewindMultiPoints(iy, y);
+        std::cerr << "to " << ix << " " << iy << std::endl;
+      }
+      if(!dir.ref(ix,iy)) {
+        std::cerr << "Failed : " << "prev / " << px << " " << py << " i / " << ix << " " << iy << std::endl;
+        return;
+      }
       trans = tt.ref(ix, iy);
+      px = prevX(ix,iy,x,y), py = prevY(ix,iy,x,y);
+      std::cerr << "Prev : " << px << " " << py << std::endl;
       switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
           MULTI_PUSH(x); ix=px; iy=py;)
@@ -370,7 +388,6 @@ class GridLayout {
           if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
           else { MULTI_PUSH(y) iy=py; })
       }
-      std::cerr << "APPLY : " << *ap.front() << " << " << trans << std::endl;
       for(typename std::list<POINT_T*>::iterator i=ap.begin(); i!=ap.end(); ++i)
       { *(*i) += trans; }
     }
