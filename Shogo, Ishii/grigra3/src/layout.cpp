@@ -16,6 +16,8 @@
 #define RIGHT 1
 #define TOP  2
 #define RIGHT_TOP 3
+#define MULTI_RIGHT 4
+#define MULTI_TOP 5
 
 template<typename TYPE>
 class Point {
@@ -135,7 +137,7 @@ class PointSequence : public std::vector<int> {
     compare_##A (PointSet<TYPE> &set) : set(set) {} \
     bool operator ()(const TYPE &a, const TYPE &b) const { \
       if(set[a].get##A() == set[b].get##A()) \
-        return set[a].get##B() > set[b].get##B(); \
+        return set[a].get##B() < set[b].get##B(); \
       return set[a].get##A() < set[b].get##A(); \
     } \
   };
@@ -226,9 +228,15 @@ class GridLayout {
 #define DEFINE_PREV(A1,a1,A2,a2) \
   int prev##A1(int ix, int iy, PSEQ_T &x, PSEQ_T &y) { \
     TYPE t = a2.ref(i##a2).get##A2(); \
+    TYPE u = a2.ref(i##a2).get##A1(); \
+    if(a1.ref(i##a1).get##A1() == a2.ref(i##a2).get##A1() && \
+       a1.ref(i##a1).get##A2() < a2.ref(i##a2).get##A2()) { \
+      return 1 + i##a1; \
+    } \
     do { \
       if(i##a1 <= 0) return -1; \
-    } while(t < a1.ref(--i##a1).get##A2()); \
+    } while(t < a1.ref(--i##a1).get##A2() || \
+            (t == a1.ref(i##a1).get##A2() && u < a1.ref(i##a1).get##A1())); \
     return i##a1; \
   }
   DEFINE_PREV(X,x,Y,y)
@@ -301,8 +309,11 @@ class GridLayout {
           CASE_TEMPLATE(2,
             CALC_AXIS(x,i,a,px,j,px<0,RIGHT);
             CALC_AXIS(y,j,b,i,py,py<0,TOP);
-            if(alen < blen) SET_TABLE(da,alen,RIGHT);
-            else SET_TABLE(db,blen,TOP);)
+            if(alen < blen) {
+              SET_TABLE(da,alen,RIGHT);
+            } else {
+              SET_TABLE(db,blen,TOP);
+            })
         }
       }
     }
