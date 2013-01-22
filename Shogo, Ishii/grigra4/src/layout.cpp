@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <functional>
+#include <cmath>
 #include <list>
 
 #define DEFINE_STREAM_PRINT(T) \
@@ -20,6 +21,28 @@
 #define RIGHT_TOP 3
 #define MULTI_RIGHT 4
 #define MULTI_TOP 5
+
+namespace {
+
+template <typename TYPE>
+TYPE modulo(TYPE a, TYPE b) {
+  return a % b;
+}
+
+template <>
+float modulo(float a, float b) {
+  return std::fmod(a,b);
+}
+
+template <>
+double modulo(double a, double b) {
+  return std::fmod(a,b);
+}
+
+template <>
+int modulo(int a, int b) {
+  return a % b;
+}
 
 template<typename TYPE>
 class Point {
@@ -36,22 +59,13 @@ public:
 #undef GETTER
 #undef SETTER
 #define UV(A) \
-  TYPE u##A = (std::abs(t.A) % grid) * (t.A > 0 ? -1 : 1); \
+  TYPE u##A = (modulo<TYPE>(std::abs(t.A), (TYPE)grid)) * (t.A > 0 ? -1 : 1); \
   TYPE v##A = (grid - std::abs(u##A)) * (t.A > 0 ? 1 : -1);
   Point trans(Point q, int grid, int dir) {
     Point t(*this - q), r, tmp; UV(x) UV(y)
     r = Point(ux,uy);
-//    if(dir == TOP || dir == RIGHT_TOP) {
-      r.y = uy < vy ? vy : uy;
-//    } else {
-//      r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
-//    }
-//    if(dir == RIGHT || dir == RIGHT_TOP) {
-      r.x = ux < vx ? vx : ux;
-//    } else {
-//      r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
-//    }
-    //std::cerr << "TRANS " << *this << " / " << r << std::endl;
+    r.y = uy < vy ? vy : uy;
+    r.x = ux < vx ? vx : ux;
     return r;
   }
 #undef UV
@@ -86,6 +100,10 @@ TYPE sumMultiPointsDistance(int n, TYPE grid_size) {
   return rectMultiPoints(n, grid_size).length();
 }
 
+} // Endof unnamed namespcace
+
+namespace gridlayout {
+
 template<typename TYPE>
 class PointSet : public std::vector<Point<TYPE> > {
   typedef Point<TYPE> POINT_T;
@@ -108,13 +126,19 @@ public:
   void print(std::ostream &out) {
     for(iterator i = BEGIN; i != END; i++) i->print(out), out << std::endl;
   }
+  PointSet(const TYPE *array, const size_t maxlen) : std::vector<POINT_T>(maxlen) {
+    for(size_t i=0; i<maxlen; i+=2)
+    {
+      std::vector<POINT_T>::at(i).setX(array[i]);
+      std::vector<POINT_T>::at(i+1).setY(array[i+1]);
+    }
+  }
   bool checkIndependent() {
     bool check = true;
     for(iterator i = BEGIN; i != END; i++)
       for(iterator j = i; j != END; j++)
         if(!(i==j) && (*i==*j)) {
           check = false;
-          // std::cerr << *i << " : " << *j << std::endl;
         }
     return check;
   }
@@ -128,6 +152,11 @@ public:
 #undef AT
 };
 DEFINE_STREAM_PRINT(PointSet)
+
+} // Endof namespace [gridlayout]
+
+namespace {
+using namespace gridlayout;
 
 template<typename TYPE>
 class PointSequence : public std::vector<int> {
@@ -186,7 +215,7 @@ public:
 DEFINE_STREAM_PRINT(grid)
 
 template <typename TYPE>
-class GridLayout {
+class GridLayoutMan {
   typedef Point<TYPE> POINT_T;
   typedef PointSet<TYPE> PSET_T;
   typedef PointSequence<TYPE> PSEQ_T;
@@ -332,12 +361,9 @@ class GridLayout {
 #define PUSH(A) ap.push_front(&tmp[A[i##A]])
 #define MULTI_PUSH(A) { \
     if(multi##A) { \
-      std::cerr << "Multi-Points Found! " << ix << " " << iy << std::endl; \
       int it = i##A, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,A); \
-      std::cerr << "size : " << l << std::endl; \
       POINT_T rect = rectMultiPoints<TYPE>(l, grid_size); \
       while((it - i##A <= l) && A.ref(i##A) == A.ref(it)) { \
-        std::cerr << rc << " " << tc << std::endl; \
         tmp[A[it]] += POINT_T(rc * grid_size, tc * grid_size); \
         ap.push_front(&tmp[A[it]]); \
         if(tc == tb) { \
@@ -359,7 +385,6 @@ class GridLayout {
         **itr -= rect; \
         ++itr; \
       } \
-      std::cerr << "Rect : " << rect << std::endl; \
       trans += rect; \
     } else { \
       PUSH(A); \
@@ -371,8 +396,6 @@ class GridLayout {
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
     PSET_T tmp(set);
-    std::cerr << tt << std::endl;
-    std::cerr << dir << std::endl;
     while(ix >= 0 && iy >= 0) {
       // multiple-point block
       multix = checkMultiPoints(ix, x);
@@ -382,7 +405,6 @@ class GridLayout {
       }
       if(multiy) {
         iy = rewindMultiPoints(iy, y);
-        std::cerr << "to " << ix << " " << iy << std::endl;
       }
       if(!dir.ref(ix,iy)) {
         return;
@@ -405,19 +427,11 @@ class GridLayout {
 #undef PUSH
 #undef MULTI_PUSH
 public:
-  GridLayout(int grid_size) : grid_size(grid_size) {}
-  ~GridLayout() {}
+  GridLayoutMan(int grid_size) : grid_size(grid_size) {}
+  ~GridLayoutMan() {}
   PSET_T &match(PSET_T &p) {
     PSEQ_T sortx(p, true), sorty(p, false);
-    //undiplicate(p, sortx, sorty);
     listCountRects(p, sortx, sorty);
-    //if(!p.checkIndependent()) {
-    //  std::cerr << "NOT INDEPENDENT, UNDIPLICATING..." << std::endl;
-    //  {
-    //    PSEQ_T sortx(p, true), sorty(p, false);
-    //    undiplicate(p, sortx, sorty);
-    //  }
-    //}
     return p;
   }
   bool checkMatch(PSET_T &p) {
@@ -428,21 +442,79 @@ public:
   }
 };
 
-template<typename TYPE>
-GridLayout::PointSet::PointSet() {
-}
+} // End of unnamed namespace
 
-GridLayout::PointSet::PointSet(std::istream &pIn) {
-}
-
-GridLayout::PointSet::PointSet(const TYPE *pset, const size_t length) {
-}
+//
+// GridLayout System Interface
+//
 
 template<typename TYPE>
-int GridLayout::GridLayout(PointSet<TYPE> *pointset, const TYPE gridsize)
+gridlayout::PointSetProxy<TYPE>::PointSetProxy() : set_p(NULL) {
+}
+
+template<typename TYPE>
+gridlayout::PointSetProxy<TYPE>::PointSetProxy(const char *filename) : set_p(NULL) {
+  std::ifstream fin(filename);
+  if(fin.is_open()) {
+    this->set_p = new gridlayout::PointSet<TYPE>(fin);
+  }
+}
+
+template<typename TYPE>
+gridlayout::PointSetProxy<TYPE>::PointSetProxy(std::istream &pIn) : set_p(NULL) {
+  this->set_p = new gridlayout::PointSet<TYPE>(pIn);
+}
+
+template<typename TYPE>
+gridlayout::PointSetProxy<TYPE>::PointSetProxy(const TYPE *pset, const size_t length) : set_p(NULL) {
+  this->set_p = new gridlayout::PointSet<TYPE>(pset, length);
+}
+
+template<typename TYPE>
+gridlayout::PointSetProxy<TYPE>::~PointSetProxy() {
+  if(set_p) delete set_p;
+}
+
+template<typename TYPE>
+size_t gridlayout::PointSetProxy<TYPE>::length() {
+  return set_p->size();
+}
+
+template<typename TYPE>
+void gridlayout::PointSetProxy<TYPE>::print() {
+  std::cout << *set_p << std::endl;
+}
+
+template<typename TYPE>
+void gridlayout::PointSetProxy<TYPE>::print(std::ostream &sOut) {
+  sOut << *set_p << std::endl;
+}
+
+template<typename TYPE>
+void gridlayout::PointSetProxy<TYPE>::print(TYPE *out_p, const size_t maxlen) {
+  int k=0;
+  for(typename std::vector<Point<TYPE> >::iterator i = set_p->begin();
+      i != set_p->end() || k<maxlen;
+      ++i, k+=2)
+  {
+    out_p[k] = i->getX();
+    out_p[k+1] = i->getY();
+  }
+}
+
+template<typename TYPE>
+int gridlayout::GridLayout(PointSetProxy<TYPE> *pointset, const TYPE gridsize)
 {
-  GridLayout<TYPE> gridlayout(gridsize);
-  gridlayout.match(pointset);
+  if(!pointset->set_p) return -1;
+  GridLayoutMan<TYPE> gl(gridsize);
+  gl.match(*(pointset->set_p));
   return 0;
 }
+
+// Conclete
+template class gridlayout::PointSetProxy<int>;
+template class gridlayout::PointSetProxy<float>;
+
+template int gridlayout::GridLayout(PointSetProxy<int> *pointset, const int gridsize);
+template int gridlayout::GridLayout(PointSetProxy<float> *pointset, const float gridsize);
 
