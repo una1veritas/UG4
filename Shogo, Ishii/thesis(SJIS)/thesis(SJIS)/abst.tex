@@ -1,0 +1,130 @@
+\documentclass{AIabst}
+%\documentclass[master]{AIabst} %修論はこちら
+% 論文概要
+\input personal
+\begin{document}
+\makeAbstHeader
+%
+%
+%
+\section{はじめに}
+このファイルでは,
+知能情報工学科 (情報科学専攻知能情報工学分野) の
+卒業論文及び修士論文概要スタイルファイルの
+使い方について説明する. 
+
+\section{必要なファイル}
+概要作成に必要なファイルは, 
+\begin{center}
+\begin{tabular}{ll}
+{\tt personal.tex\/} & 個人データファイル\\
+{\tt abst.tex\/} & 概要\\
+{\tt AIabst.cls\/} & 概要クラスファイル
+\end{tabular}
+\end{center}
+であり, また表紙作成に必要なファイルは, 
+\begin{center}
+\begin{tabular}{ll}
+{\tt cover1.tex\/} & 論文表紙\\
+{\tt cover2.tex\/} & 論文中表紙\\
+{\tt spine.tex\/}  & 論文背表紙 \\
+{\tt AIcover.cls\/}  & 表紙類クラスファイル
+\end{tabular}
+\end{center}
+である. 基本的に, 概要や表紙の作成には, 
+\begin{center}
+{\tt abst.tex\/},
+{\tt cover1.tex\/},
+{\tt cover2.tex\/},
+{\tt spine.tex\/}
+\end{center}
+をコンパイルすればよい. 
+基本的には以下の 2 つのファイル
+\begin{center}
+\begin{tabular}{l}
+{\tt personal.tex\/} \\
+{\tt abst.tex\/}
+\end{tabular}
+\end{center}
+を加筆・修正することで, 
+概要・表紙が作成できるようになっている. 
+なお, 表題を2行に分けたいときには, 
+{\tt personal.tex\/}の題目の改行位置に$\backslash\backslash$を
+挿入すること. 
+
+修論の場合はクラスファイルオプション {\tt master} を指定し,
+\begin{center}
+\begin{verbatim}
+\documentclass[master]{AIabst}
+あるいは
+\documentclass[master]{AIcover}
+\end{verbatim}
+\end{center}
+などと修正したのち, コンパイルすること.
+
+%{\tt abst.tex\/},
+%{\tt cover1.tex\/},
+%{\tt cover2.tex\/},
+%{\tt spine.tex\/}
+%における
+%名前・学生番号・指導教官・論文題目
+%の細かいファイルごとの修正, 特に, 概要と表紙における表題の改行位置の変更は, 
+%それぞれのファイルの 
+%ファイル読み込み部分($\backslash${\tt input\{...\}\/}の部分)
+%を消去して直接書き込むことで可能である. 
+%この場合には, ミスが無いように十分注意すること. 
+
+\section{注意する点}
+本スタイルファイルで注意する点は以下の通りである. 
+\begin{enumerate}
+\item
+卒業論文における所属部門名は以下の通りである.
+なお, 「○○部門」の「部門」は不要である.
+\begin{itemize}
+\item 知能数理学部門\\
+篠原, 瀬部, 石坂, 坂本, 下薗, 平田
+の各研究室.
+\item 知能情報アーキテクチャ部門\\
+吉田(隆), 小出 の各研究室.
+\item 知能情報メディア部門\\
+江島, 遠藤, 竹内, 乃万, 國近, 中村, 吉田(香), 榎田
+の各研究室.
+\end{itemize}
+
+\item
+基本的に通常の LaTeX と同じように利用できる. 
+ただし, パッケージは最低限のものしか入れていないので, 
+必要に応じて{\tt abst.tex\/}へ追加すること.
+\item
+見出しは{\tt section\/}と{\tt subsection\/}
+しか使えない. 
+\item
+{\tt baselineskip\/}は変更しないこと. 
+\item
+参考文献を加えてもよい. 
+使い方は通常通りである.
+例えば, 
+``LaTeXの参考書には\cite{rakuraku,bibunsyo}がある.''
+\end{enumerate}
+
+{\small
+\baselineskip 12pt
+\begin{thebibliography}{1}
+
+\bibitem{rakuraku}
+野寺隆志, 
+\newblock 
+楽々LATEX (第2版), 
+\newblock 
+共立出版, 1994.
+
+\bibitem{bibunsyo}
+奥村晴彦, 
+\newblock 
+LATEX2$\varepsilon$美文書作成入門 -- 論文作成からDTPまで自由自在 --, 
+\newblock
+技術評論社, 1997.
+\end{thebibliography}
+}
+\end{document}
+
