@@ -1,0 +1,106 @@
+This is e-pTeX, Version 3.1415926-p3.3-110825-2.5 (utf8.sjis) (TeX Live 2012/W32TeX) (format=platex 2013.1.4)  5 FEB 2013 01:42
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**guide.tex
+(./guide.tex
+pLaTeX2e <2006/11/10>+0 (based on LaTeX2e <2011/06/27> patch level 0)
+Babel <v3.8m> and hyphenation patterns for english, german-x-2012-05-30, ngerma
+n-x-2012-05-30, afrikaans, ancientgreek, ibycus, arabic, armenian, basque, bulg
+arian, catalan, pinyin, coptic, croatian, czech, danish, dutch, ukenglish, usen
+glishmax, esperanto, estonian, ethiopic, farsi, finnish, french, friulan, galic
+ian, german, ngerman, swissgerman, monogreek, greek, hungarian, icelandic, assa
+mese, bengali, gujarati, hindi, kannada, malayalam, marathi, oriya, panjabi, ta
+mil, telugu, indonesian, interlingua, irish, italian, kurmanji, latin, latvian,
+ lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, polish, portuguese, roma
+nian, romansh, russian, sanskrit, serbian, serbianc, slovak, slovenian, spanish
+, swedish, turkish, turkmen, ukrainian, uppersorbian, welsh, dumylang, nohyphen
+ation, loaded.
+(c:/w32tex/share/texmf/tex/platex/base/jreport.cls
+Document Class: jreport 2006/06/27 v1.6 Standard pLaTeX class
+\c@@paper=\count81
+(c:/w32tex/share/texmf/tex/platex/base/jsize11.clo
+File: jsize11.clo 2006/06/27 v1.6 Standard pLaTeX file (size option)
+)
+\c@part=\count82
+\c@chapter=\count83
+\c@section=\count84
+\c@subsection=\count85
+\c@subsubsection=\count86
+\c@paragraph=\count87
+\c@subparagraph=\count88
+\c@figure=\count89
+\c@table=\count90
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\symmincho=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `mincho' in version `bold'
+(Font)                  JY1/mc/m/n --> JY1/gt/m/n on input line 677.
+\toclineskip=\dimen118
+\@lnumwidth=\dimen119
+\bibindent=\dimen120
+\heisei=\count91
+) (./AIthesis.sty)
+(./guide.aux)
+\openout1 = `guide.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 3.
+LaTeX Font Info:    ... okay on input line 3.
+
+第 1 章
+LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <20.74> not available
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 10.
+LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <20.74> not available
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 10.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 47.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 47.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 47.
+[1
+
+
+] [2]
+第 2 章
+LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <14.4> not available
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 54.
+LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 54.
+[3
+
+]
+第 3 章
+[4
+
+]
+第 4 章
+[5
+
+] [6
+
+] (./guide.aux) ) 
+Here is how much of TeX's memory you used:
+ 324 strings out of 494054
+ 3366 string characters out of 6159315
+ 56454 words of memory out of 5000000
+ 3821 multiletter control sequences out of 15000+600000
+ 14324 words of font info for 56 fonts, out of 8000000 for 9000
+ 745 hyphenation exceptions out of 8191
+ 22i,4n,19p,144b,169s stack positions out of 5000i,500n,10000p,500000b,50000s
+
+Output written on guide.dvi (6 pages, 9160 bytes).

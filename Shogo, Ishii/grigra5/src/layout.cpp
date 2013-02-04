@@ -61,20 +61,43 @@ public:
 #define UV(A) \
   TYPE u##A = (modulo<TYPE>(std::abs(t.A), (TYPE)grid)) * (t.A > 0 ? -1 : 1); \
   TYPE v##A = (grid - std::abs(u##A)) * (t.A > 0 ? 1 : -1);
-  Point trans(Point rt, int grid) {
-    Point t(*this - rt), r, tmp; UV(x) UV(y)
+  Point trans(Point px, Point py, int grid) {
+    Point rt(std::max(px.x, py.x), std::max(px.y, py.y));
+    Point t(*this - rt), r, tmp;
+    UV(x) UV(y)
+    px = px - rt;
+    py = py - rt;
     r = Point(ux,uy);
     r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
     r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
-    if(t.x + r.x <= 0 && t.y + r.y <= 0) {
-      if(t.x > 0) r.x = r.x == ux ? vx : ux;
-      if(t.y > 0) r.y = r.y == uy ? vy : uy;
+    tmp = t + r;
+    if(t.x < 0 && t.y < 0) {
+      std::cerr << "INSIDE TRANS!" << std::endl;
+    }
+    if(tmp.is_zero() && px.is_zero() && py.is_zero()) {
+      if(t.x < 0) {
+        r.y = (r.y == uy) ? vy : uy;
+      } else if(t.y < 0) {
+        r.x = (r.x == ux) ? vx : ux;
+      } else if( std::abs((r.x == ux) ? vx : ux) < std::abs((r.y == uy) ? vy : uy) ) {
+        r.x = (r.x == ux) ? vx : ux;
+      } else {
+        r.y = (r.y == uy) ? vy : uy;
+      }
+    } else if(tmp.x <= 0 && tmp.y <= 0) {
+      if(t.x >= 0) {
+        r.x = (r.x == ux) ? vx : ux;
+      }
+      if(t.y >= 0) {
+        r.y = (r.y == uy) ? vy : uy;
+      }
     }
     return r;
   }
 #undef UV
   TYPE sum() const { return x+y; }
   TYPE length() const { return abs(x)+abs(y); }
+  bool is_zero() const { return x == 0 && y == 0; }
   bool operator ==(Point &p) { return (x == p.x) && (y == p.y); }
   Point &operator =(Point p) { x=p.x; y=p.y; return *this; }
   Point operator +(Point p) { Point q(x + p.x, y + p.y); return q; }
@@ -139,9 +162,11 @@ public:
   }
   bool checkIndependent() {
     bool check = true;
-    for(iterator i = BEGIN; i != END; i++)
-      for(iterator j = i; j != END; j++)
-        if(!(i==j) && (*i==*j)) {
+    for(int i = 0; i < std::vector<POINT_T>::size(); i++)
+      for(int j = i; j < std::vector<POINT_T>::size(); j++)
+        if(!(i==j) && (std::vector<POINT_T>::at(i) == std::vector<POINT_T>::at(j))) {
+          std::cerr << i << " : " << std::vector<POINT_T>::at(i) << " | "
+                    << j << " : " << std::vector<POINT_T>::at(j) << std::endl;
           check = false;
         }
     return check;
@@ -271,10 +296,6 @@ class GridLayoutMan {
   int prev##A1(int ix, int iy, PSEQ_T &x, PSEQ_T &y) { \
     TYPE t = a2.ref(i##a2).get##A2(); \
     TYPE u = a2.ref(i##a2).get##A1(); \
-    if(a1.ref(i##a1).get##A1() == a2.ref(i##a2).get##A1() && \
-       a1.ref(i##a1).get##A2() < a2.ref(i##a2).get##A2()) { \
-      return 1 + i##a1; \
-    } \
     do { \
       if(i##a1 <= 0) return -1; \
     } while(t < a1.ref(--i##a1).get##A2() || \
@@ -318,56 +339,59 @@ class GridLayoutMan {
     grid<int> dir(set.size());
     int i, j, pi, pj;
     bool multix, multiy;
-    POINT_T mxlen, mylen, rt, art, brt, a, b;
+    TYPE mxlen, mylen;
+    POINT_T rt, art, brt, a, b, pa, pb, ta, tb;
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
         i = v->getX(), j = v->getY();
-        multix = checkMultiPoints(i, x);
-        multiy = checkMultiPoints(j, y);
-        if(multix) {
-          i = rewindMultiPoints(i, x);
-          mxlen = POINT_T(sumMultiPointsDistance(multiPointsLen(i, x), grid_size), 0);
-        }
-        if(multiy) {
-          j = rewindMultiPoints(j, y);
-          mylen = POINT_T(0, sumMultiPointsDistance(multiPointsLen(j, y), grid_size));
-        }
+        i = rewindMultiPoints(i, x);
+        j = rewindMultiPoints(j, y);
         pi = prevX(i,j,x,y);
         pj = prevY(i,j,x,y);
-        rt = getRect(x.ref(i), y.ref(j));
+        pi = rewindMultiPoints(pi, x);
+        pj = rewindMultiPoints(pj, y);
         switch(checkPointPair(i,j,x,y)) {
           case 1 : // TOP-RIGHT
           art = getRect(pi < 0 ? POINT_T(0,0) : x.ref(pi),
                         pj < 0 ? POINT_T(0,0) : y.ref(pj));
-          a = x.ref(i).trans(art, grid_size);
+          a = x.ref(i).trans(pi < 0 ? POINT_T(0,0) : x.ref(pi),
+                             pj < 0 ? POINT_T(0,0) : y.ref(pj),
+                             grid_size);
           tt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
-                      + rectPush(x.ref(i) + a, art);
+                      + rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x) , grid_size), art);
           pt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
                       + a - art;
           dir.ref(i,j) = RIGHT_TOP;
           break;
           case 2 : // TOP or RIGHT
           art = getRect(x.ref(pi), y.ref(j));
-          a = x.ref(i).trans(art, grid_size);
+          a = x.ref(i).trans(x.ref(pi), y.ref(j), grid_size);
+          pa = (pi < 0 ? POINT_T(0,0) : tt.ref(pi,j)) + a - art;
+          ta = rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x), grid_size), art);
           brt = getRect(x.ref(i), y.ref(pj));
-          b = y.ref(i).trans(brt, grid_size);
-          if(a.length() < b.length()) {
-            tt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j))
-                          + rectPush(x.ref(i) + a, art);
-            pt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j))
-                          + a - art;
+          b = y.ref(j).trans(x.ref(i), y.ref(pj), grid_size);
+          pb = (pj < 0 ? POINT_T(0,0) : tt.ref(i,pj)) + b - brt;
+          tb = rectPush(y.ref(j) + b + rectMultiPoints(multiPointsLen(j,y), grid_size), brt);
+          if(ta.length() <= tb.length()) {
+            tt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j)) + ta;
+            pt.ref(i,j) = pa;
             dir.ref(i,j) = RIGHT;
           } else {
-            tt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj))
-                          + rectPush(y.ref(j) + b, brt);
-            pt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj))
-                          + b - brt;
+            tt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj)) + tb;
+            pt.ref(i,j) = pb;
             dir.ref(i,j) = TOP;
           }
           break;
         }
       }
     }
+    /*
+    std::cerr << "RECT : " << std::endl << tt << std::endl;
+    std::cerr << "PT : " << std::endl << pt << std::endl;
+    std::cerr << "DIR : " << std::endl << dir << std::endl;
+    std::cerr << "SORTX : " << std::endl << x << std::endl;
+    std::cerr << "SORTY : " << std::endl << y << std::endl;
+    */
     applyLayout(set,x,y,pt,dir);
   }
 #define CASE_TEMPLATE(ID,CODE) \
@@ -432,18 +456,57 @@ class GridLayoutMan {
           if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
           else { MULTI_PUSH(y) iy=py; })
       }
-      /*
-      for(typename std::list<int>::iterator i=ap.begin(); i!=ap.end(); ++i)
-      {
-        tmp[*i] += trans;
-      }
-      */
     }
     
-    // OutputLayout
-    set = tmp;
-
     // 畳み込み処理
+    /*
+    for(typename std::list<int>::iterator i=ap.begin(), j=i++; j!=ap.end(); ++j, ++i)
+    {
+      if( (tmp[*i].getX() == tmp[*j].getX() + grid_size) &&
+          (tmp[*i].getY() >= tmp[*j].getY() + grid_size) &&
+          (set[*i].getX() - tmp[*j].getX() < grid_size / 2)
+        )
+      {
+        for(typename std::list<int>::iterator k=i; k!=ap.end(); ++k) {
+          tmp[*k] += POINT_T(-grid_size, 0);
+        }
+      }
+      if( (tmp[*i].getY() == tmp[*j].getY() + grid_size) &&
+          (tmp[*i].getX() > tmp[*j].getX()) &&
+          (set[*i].getY() - tmp[*j].getY() < grid_size / 2)
+        )
+      {
+        for(typename std::list<int>::iterator k=i; k!=ap.end(); ++k) {
+          tmp[*k] += POINT_T(0, -grid_size);
+        }
+      }
+    }
+    */
+    {
+      PSEQ_T x(tmp, true), y(tmp, false);
+      for(int i=1; i<x.size(); ++i) 
+      {
+        if( (x.ref(i).getX() == x.ref(i-1).getX() + grid_size) &&
+            (x.ref(i).getY() > x.ref(i-1).getY()) )
+        {
+          for(int j=i; j<x.size(); ++j) {
+            x.ref(j) += POINT_T(-grid_size, 0);
+          }
+        }
+      }
+      for(int i=1; i<y.size(); ++i) 
+      {
+        if( (y.ref(i).getY() == y.ref(i-1).getY() + grid_size) &&
+            (y.ref(i).getX() > y.ref(i-1).getX()) )
+        {
+          for(int j=i; j<y.size(); ++j) {
+            y.ref(j) += POINT_T(0, -grid_size);
+          }
+        }
+      }
+    }
+
+    set = tmp;
   }
 #undef CASE_TEMPLATE
 #undef PUSH
@@ -530,6 +593,9 @@ int gridlayout::GridLayout(PointSetProxy<TYPE> *pointset, const TYPE gridsize)
   if(!pointset->set_p) return -1;
   GridLayoutMan<TYPE> gl(gridsize);
   gl.match(*(pointset->set_p));
+  if(!pointset->set_p->checkIndependent()) {
+    std::cerr << "NOT INDEPENDENT MATCH!" << std::endl;
+  }
   return 0;
 }
 
