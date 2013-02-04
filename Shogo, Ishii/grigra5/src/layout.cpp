@@ -61,12 +61,12 @@ public:
 #define UV(A) \
   TYPE u##A = (modulo<TYPE>(std::abs(t.A), (TYPE)grid)) * (t.A > 0 ? -1 : 1); \
   TYPE v##A = (grid - std::abs(u##A)) * (t.A > 0 ? 1 : -1);
-  Point trans(Point rt, int grid, int dir) {
+  Point trans(Point rt, int grid) {
     Point t(*this - rt), r, tmp; UV(x) UV(y)
     r = Point(ux,uy);
     r.y = std::abs(uy) < std::abs(vy) ? uy : vy;
     r.x = std::abs(ux) < std::abs(vx) ? ux : vx;
-    if(t.x + r.x < 0 && t.y + r.y < 0) {
+    if(t.x + r.x <= 0 && t.y + r.y <= 0) {
       if(t.x > 0) r.x = r.x == ux ? vx : ux;
       if(t.y > 0) r.y = r.y == uy ? vy : uy;
     }
@@ -245,10 +245,12 @@ class GridLayoutMan {
     while(j+1 < s.size() && s.ref(i) == s.ref(j)) ++j;
     return j - i;
   }
+  POINT_T getRect(POINT_T p, POINT_T q) {
+    return POINT_T(std::max(p.getX(), q.getX()),
+                   std::max(p.getY(), q.getY()));
+  }
   POINT_T rectPush(POINT_T p, POINT_T rt) {
-    return POINT_T(std::max(p.getX(), rt.getX()),
-                   std::max(p.getY(), rt.getY()))
-           - rt;
+    return getRect(p, rt) - rt;
   }
 #define UNDIPLICATE_AXIS(A,a) \
   prev = a.ref(0).get##A(), bias = 0; \
@@ -312,10 +314,11 @@ class GridLayoutMan {
 #undef SETCOUNT
 #undef EACH_CELL
   void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
-    grid<POINT_T> tt(set.size()), grid<int> dir(set.size());
+    grid<POINT_T> pt(set.size()), tt(set.size());
+    grid<int> dir(set.size());
     int i, j, pi, pj;
     bool multix, multiy;
-    POINT_T mxlen, mylen, rt;
+    POINT_T mxlen, mylen, rt, art, brt, a, b;
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
         i = v->getX(), j = v->getY();
@@ -331,16 +334,41 @@ class GridLayoutMan {
         }
         pi = prevX(i,j,x,y);
         pj = prevY(i,j,x,y);
+        rt = getRect(x.ref(i), y.ref(j));
         switch(checkPointPair(i,j,x,y)) {
           case 1 : // TOP-RIGHT
-          rt = POINT_T(x.ref(pi).getX(), y.ref(pj).getY());
+          art = getRect(pi < 0 ? POINT_T(0,0) : x.ref(pi),
+                        pj < 0 ? POINT_T(0,0) : y.ref(pj));
+          a = x.ref(i).trans(art, grid_size);
+          tt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
+                      + rectPush(x.ref(i) + a, art);
+          pt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
+                      + a - art;
+          dir.ref(i,j) = RIGHT_TOP;
           break;
           case 2 : // TOP or RIGHT
+          art = getRect(x.ref(pi), y.ref(j));
+          a = x.ref(i).trans(art, grid_size);
+          brt = getRect(x.ref(i), y.ref(pj));
+          b = y.ref(i).trans(brt, grid_size);
+          if(a.length() < b.length()) {
+            tt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j))
+                          + rectPush(x.ref(i) + a, art);
+            pt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j))
+                          + a - art;
+            dir.ref(i,j) = RIGHT;
+          } else {
+            tt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj))
+                          + rectPush(y.ref(j) + b, brt);
+            pt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj))
+                          + b - brt;
+            dir.ref(i,j) = TOP;
+          }
           break;
         }
       }
     }
-    applyLayout(set,x,y,tt,dir);
+    applyLayout(set,x,y,pt,dir);
   }
 #define CASE_TEMPLATE(ID,CODE) \
   case ID : { \
@@ -390,6 +418,7 @@ class GridLayoutMan {
         iy = rewindMultiPoints(iy, y);
       }
       if(!dir.ref(ix,iy)) {
+        std::cerr << "APPLY FAILEDED at " << ix << iy;
         return;
       }
       istop = dir.ref(ix,iy)==TOP;
