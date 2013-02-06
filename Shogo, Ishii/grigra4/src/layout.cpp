@@ -220,7 +220,7 @@ class GridLayoutMan {
   typedef PointSet<TYPE> PSET_T;
   typedef PointSequence<TYPE> PSEQ_T;
   typedef std::vector< std::list< Point<int> > > RDIC_T;
-  int grid_size;
+  TYPE grid_size;
   int checkPointPair(int i, int j, PSEQ_T &x, PSEQ_T &y) {
     if(x[i] == y[j]) return 1;
     POINT_T &p = x.ref(i), &q = y.ref(j);
@@ -358,14 +358,14 @@ class GridLayoutMan {
   case ID : { \
     CODE \
   } break;
-#define PUSH(A) ap.push_front(&tmp[A[i##A]])
+#define PUSH(A) ap.push_front(A[i##A])
 #define MULTI_PUSH(A) { \
     if(multi##A) { \
       int it = i##A, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,A); \
       POINT_T rect = rectMultiPoints<TYPE>(l, grid_size); \
       while((it - i##A <= l) && A.ref(i##A) == A.ref(it)) { \
         tmp[A[it]] += POINT_T(rc * grid_size, tc * grid_size); \
-        ap.push_front(&tmp[A[it]]); \
+        ap.push_front(A[it]); \
         if(tc == tb) { \
           if(rc == 0) { \
             ++rb; \
@@ -380,9 +380,9 @@ class GridLayoutMan {
         } \
         ++it; \
       } \
-      typename std::list<POINT_T*>::iterator itr = ap.begin(); \
+      typename std::list<int>::iterator itr = ap.begin(); \
       while(i##A <= --it) { \
-        **itr -= rect; \
+        tmp[*itr] -= rect; \
         ++itr; \
       } \
       trans += rect; \
@@ -391,7 +391,7 @@ class GridLayoutMan {
     } \
   }
   void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
-    std::list<POINT_T*> ap;
+    std::list<int> ap;
     bool multix, multiy;
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
     POINT_T trans;
@@ -418,9 +418,11 @@ class GridLayoutMan {
           if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
           else { MULTI_PUSH(y) iy=py; })
       }
-      for(typename std::list<POINT_T*>::iterator i=ap.begin(); i!=ap.end(); ++i)
-      { *(*i) += trans; }
+      for(typename std::list<int>::iterator i=ap.begin(); i!=ap.end(); ++i)
+      { tmp[*i] += trans; }
     }
+    
+    // OutputLayout
     set = tmp;
   }
 #undef CASE_TEMPLATE
