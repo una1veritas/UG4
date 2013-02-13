@@ -5,7 +5,7 @@
 \contentsline {section}{\numberline {2.3}二次元点集合の格子配置とその解法}{7}
 \contentsline {chapter}{\numberline {第3章}実験結果}{10}
 \contentsline {section}{\numberline {3.1}グラフの格子配置アルゴリズム}{10}
-\contentsline {section}{\numberline {3.2}グラフに入力される重複した点の対策}{10}
+\contentsline {section}{\numberline {3.2}グラフに入力される重複した点の対策}{11}
 \contentsline {section}{\numberline {3.3}伸長したグラフの畳み込み処理}{11}
-\contentsline {section}{\numberline {3.4}実験結果}{11}
-\contentsline {chapter}{\numberline {第4章}終わりに}{14}
+\contentsline {section}{\numberline {3.4}実験結果}{12}
+\contentsline {chapter}{\numberline {第4章}終わりに}{15}
