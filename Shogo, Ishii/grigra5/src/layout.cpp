@@ -251,7 +251,7 @@ class GridLayoutMan {
   typedef std::vector< std::list< Point<int> > > RDIC_T;
   TYPE grid_size;
   int checkPointPair(int i, int j, PSEQ_T &x, PSEQ_T &y) {
-    if(x[i] == y[j]) return 1;
+    if(x.ref(i) == y.ref(j)) return 1;
     POINT_T &p = x.ref(i), &q = y.ref(j);
     if(p.getX() >= q.getX() && p.getY() <= q.getY()) return 2;
     return 0;
@@ -299,51 +299,40 @@ class GridLayoutMan {
     do { \
       if(i##a1 <= 0) return -1; \
     } while(t < a1.ref(--i##a1).get##A2() || \
-            (t == a1.ref(i##a1).get##A2() && u < a1.ref(i##a1).get##A1())); \
+           (t == a1.ref(i##a1).get##A2() && u < a1.ref(i##a1).get##A1())); \
     return i##a1; \
   }
   DEFINE_PREV(X,x,Y,y)
   DEFINE_PREV(Y,y,X,x)
 #undef DEFINE_PREV
-#define CASE_TEMPLATE(ID,CODE) \
-  case ID : { \
-    px = prevX(i,j,x,y), py = prevY(i,j,x,y); \
-    CODE \
-  } break;
-#define PCOUNT(V,T,X,Y) V = (T) ? 0 : cr.ref(X,Y)
-#define SETCOUNT(V) cr.ref(i,j) = (V)+1; rd[V].push_back(Point<int>(i,j)); rdcnt[V]+=1;
-#define EACH_CELL(X,Y) for(int X=0; X<set.size(); ++X) for(int Y=0; Y<set.size(); ++Y)
   void listCountRects(PSET_T &set, PSEQ_T &x, PSEQ_T &y) {
     grid<int> cr(set.size());
     RDIC_T rd(set.size());
-    std::vector<int> rdcnt(set.size(), 0);
-    int px, py, a, b;
-    EACH_CELL(i,j) {
-      switch(checkPointPair(i,j,x,y)) {
-        CASE_TEMPLATE(1,
-          PCOUNT(a, px<0 || py<0, px, py);
-          SETCOUNT(a);)
-        CASE_TEMPLATE(2,
-          PCOUNT(a, px<0, px, j);
-          SETCOUNT(a);)
+    int pi, pj, v;
+    for(int i=0; i<set.size(); ++i) {
+      for(int j=0; j<set.size(); ++j) {
+        if(i != rewindMultiPoints(i, x)) continue;
+        if(j != rewindMultiPoints(j, y)) continue;
+        pi = prevX(i,j,x,y);
+        pi = rewindMultiPoints(pi, x);
+        v = pi < 0 ? 0 : cr.ref(pi, j);
+        rd[v+1].push_back(Point<int>(i,j));
+        cr.ref(i, j) = v+1;
       }
     }
     calcTranslateTable(set, x, y, rd);
   }
-#undef CASE_TEMPLATE
-#undef PCOUNT
-#undef SETCOUNT
-#undef EACH_CELL
   void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
     grid<POINT_T> pt(set.size()), tt(set.size());
-    grid<int> dir(set.size());
+    grid<char> dir(set.size());
     int i, j, pi, pj;
     bool multix, multiy;
     TYPE mxlen, mylen;
     POINT_T rt, art, brt, a, b, pa, pb, ta, tb;
     for(RDIC_T::iterator u = rd.begin(); u != rd.end(); ++u) {
       for(RDIC_T::value_type::iterator v = u->begin(); v != u->end(); ++v) {
-        i = v->getX(), j = v->getY();
+        i = v->getX();
+        j = v->getY();
         i = rewindMultiPoints(i, x);
         j = rewindMultiPoints(j, y);
         pi = prevX(i,j,x,y);
@@ -425,7 +414,7 @@ class GridLayoutMan {
       tmp[*ap.begin()] += trans; \
     } \
   }
-  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
+  void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<char> &dir) {
     std::list<int> ap;
     bool multix, multiy, istop, isright;
     int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
@@ -435,26 +424,34 @@ class GridLayoutMan {
       // multiple-point block
       multix = checkMultiPoints(ix, x);
       multiy = checkMultiPoints(iy, y);
-      if(multix) {
-        ix = rewindMultiPoints(ix, x);
-      }
-      if(multiy) {
-        iy = rewindMultiPoints(iy, y);
-      }
+      ix = rewindMultiPoints(ix, x);
+      iy = rewindMultiPoints(iy, y);
       if(!dir.ref(ix,iy)) {
-        std::cerr << "APPLY FAILEDED at " << ix << iy;
+        std::cerr << "APPLY FAILEDED at " << ix << " " << iy << std::endl;
+        std::cerr << x.ref(px) << " " << y.ref(py) << std::endl;
+        std::cerr << tt.ref(ix, iy) << " : " << x[ix] << " " << y[iy] << std::endl;
         return;
       }
-      istop = dir.ref(ix,iy)==TOP;
-      isright = dir.ref(ix,iy)==RIGHT;
+      istop = dir.ref(ix,iy) == TOP;
+      isright = dir.ref(ix,iy) == RIGHT;
       trans = tt.ref(ix, iy);
-      px = prevX(ix,iy,x,y), py = prevY(ix,iy,x,y);
+      px = prevX(ix,iy,x,y);
+      py = prevY(ix,iy,x,y);
+      px = rewindMultiPoints(px, x);
+      py = rewindMultiPoints(py, y);
       switch(checkPointPair(ix,iy,x,y)) {
         CASE_TEMPLATE(1,
-          MULTI_PUSH(x); ix=px; iy=py;)
+          MULTI_PUSH(x);
+          ix=px; iy=py;)
         CASE_TEMPLATE(2,
-          if(dir.ref(ix,iy)!=TOP) { MULTI_PUSH(x) ix=px; }
-          else { MULTI_PUSH(y) iy=py; })
+          if(dir.ref(ix,iy)!=TOP) {
+            MULTI_PUSH(x)
+            ix=px;
+          }
+          else {
+            MULTI_PUSH(y)
+            iy=py;
+          })
       }
     }
     

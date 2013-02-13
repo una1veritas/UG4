@@ -1,0 +1,11 @@
+\contentsline {chapter}{\numberline {第1章}はじめに}{2}
+\contentsline {chapter}{\numberline {第2章}境界矩形拡張列の格子配置問題とその解法}{4}
+\contentsline {section}{\numberline {2.1}これまでの研究}{4}
+\contentsline {section}{\numberline {2.2}境界矩形拡張列とその格子配置における編集距離}{5}
+\contentsline {section}{\numberline {2.3}二次元点集合の格子配置とその解法}{7}
+\contentsline {chapter}{\numberline {第3章}実験結果}{10}
+\contentsline {section}{\numberline {3.1}グラフの格子配置アルゴリズム}{10}
+\contentsline {section}{\numberline {3.2}グラフに入力される重複した点の対策}{11}
+\contentsline {section}{\numberline {3.3}伸長したグラフの畳み込み処理}{11}
+\contentsline {section}{\numberline {3.4}実験結果}{12}
+\contentsline {chapter}{\numberline {第4章}終わりに}{15}
