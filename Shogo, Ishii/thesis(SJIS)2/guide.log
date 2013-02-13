@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.1415926-p3.3-110825-2.5 (utf8.sjis) (TeX Live 2012/W32TeX) (format=platex 2013.1.4)  11 FEB 2013 16:36
+This is e-pTeX, Version 3.1415926-p3.3-110825-2.5 (utf8.sjis) (TeX Live 2012/W32TeX) (format=platex 2013.1.4)  12 FEB 2013 19:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -133,32 +133,49 @@ File: dvipdfmx.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
 \Gin@req@height=\dimen130
 \Gin@req@width=\dimen131
 )
-\c@dfn=\count104
- (./guide.aux)
+(c:/w32tex/share/texmf/tex/latex/setspace/setspace.sty
+Package: setspace 2000/12/01 6.7 Contributed and Supported LaTeX2e package
+
+Package: `setspace' 6.7 <2000/12/01>
+) (./algorithmic.sty
+Package: algorithmic 2009/08/24 v0.1 Document Style `algorithmic'
+ (c:/w32tex/share/texmf/tex/latex/base/ifthen.sty
+Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
+)
+\c@ALC@unique=\count104
+\c@ALC@line=\count105
+\c@ALC@rem=\count106
+\c@ALC@depth=\count107
+\ALC@tlm=\skip46
+\algorithmicindent=\skip47
+)
+\c@dfn=\count108
+\c@alg=\count109
+
+(./guide.aux)
 \openout1 = `guide.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <24.88> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 15.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 22.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <24.88> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 15.
-
-(./guide.toc
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 22.
+ (./guide.toc
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
 (Font)              Font shape `JT1/gt/m/n' tried instead on input line 1.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <12> not available
@@ -190,27 +207,58 @@ LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <17.28> not available
 (Font)              Font shape `JY1/gt/m/n' tried instead on input line 71.
 
 LaTeX Font Warning: Font shape `JT1/mc/m/it' undefined
-(Font)              using `JT1/mc/m/n' instead on input line 75.
+(Font)              using `JT1/mc/m/n' instead on input line 92.
 
 
 LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
-(Font)              using `JY1/mc/m/n' instead on input line 75.
+(Font)              using `JY1/mc/m/n' instead on input line 92.
 
 [4
 
-] [5]
-第 3 章
-[6
+] [5] [6]
+Overfull \hbox (6.48608pt too wide) detected at line 174
+\OML/cmm/m/it/12 D[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 P\OT1/cmr/m/n/12 [\OML/cm
+m/m/it/12 i; j\OT1/cmr/m/n/12 ]) = [] [] [] []
+ []
 
-]
-File: plota5.png Graphic file (type bmp)
- <plota5.png> [7]
-File: plotb5.png Graphic file (type bmp)
- <plotb5.png> [8] [9]
-第 4 章
+[7]
+
+LaTeX Font Warning: Font shape `JT1/mc/bx/it' undefined
+(Font)              using `JT1/mc/bx/n' instead on input line 202.
+
+
+LaTeX Font Warning: Font shape `JY1/mc/bx/it' undefined
+(Font)              using `JY1/mc/bx/n' instead on input line 202.
+
+LaTeX Font Info:    Font shape `JT1/mc/bx/it' in size <12> not available
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 202.
+LaTeX Font Info:    Font shape `JY1/mc/bx/it' in size <12> not available
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 202.
+
+Overfull \hbox (44.9131pt too wide) in paragraph at lines 207--208
+[] []$\OML/cmm/m/it/12 D[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 i; j\OT1/cmr/m/n/12
+ ) \OMS/cmsy/m/n/12   []f[]\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 P[]\OT1/cmr/m/n/12
+ [\OML/cmm/m/it/12 i\OT1/cmr/m/n/12 ]\OML/cmm/m/it/12 ; P\OT1/cmr/m/n/12 [[](\O
+ML/cmm/m/it/12 i; j\OT1/cmr/m/n/12 )\OML/cmm/m/it/12 ; j\OT1/cmr/m/n/12 ])\OML/
+cmm/m/it/12 ; []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 P[]\OT1/cmr/m/n/12 [\OML/cmm/
+m/it/12 j\OT1/cmr/m/n/12 ]\OML/cmm/m/it/12 ; P\OT1/cmr/m/n/12 [\OML/cmm/m/it/12
+ i; []\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 i; j\OT1/cmr/m/n/12 )])\OMS/cmsy/m/n/12
+ g$ 
+ []
+
+[8] [9]
+第 3 章
 [10
 
-] [11
+] [11]
+File: plota5.png Graphic file (type bmp)
+ <plota5.png>
+File: plotb5.png Graphic file (type bmp)
+ <plotb5.png> [12] [13]
+第 4 章
+[14
+
+] [15
 
 ] (./guide.aux)
 
@@ -218,12 +266,12 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 1546 strings out of 494054
- 17268 string characters out of 6159315
- 74085 words of memory out of 5000000
- 4980 multiletter control sequences out of 15000+600000
- 16422 words of font info for 65 fonts, out of 8000000 for 9000
+ 1774 strings out of 494054
+ 19914 string characters out of 6159315
+ 80612 words of memory out of 5000000
+ 5196 multiletter control sequences out of 15000+600000
+ 16781 words of font info for 66 fonts, out of 8000000 for 9000
  745 hyphenation exceptions out of 8191
- 27i,8n,24p,232b,310s stack positions out of 5000i,500n,10000p,500000b,50000s
+ 27i,8n,24p,232b,509s stack positions out of 5000i,500n,10000p,500000b,50000s
 
-Output written on guide.dvi (11 pages, 26144 bytes).
+Output written on guide.dvi (15 pages, 35008 bytes).
