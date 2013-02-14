@@ -639,7 +639,7 @@ namespace {
     PSET_T &match(PSET_T &p) {
       PSEQ_T sortx(p, true), sorty(p, false);
       listCountRects(p, sortx, sorty);
-      foldLayout(p);
+      //foldLayout(p);
       return p;
     }
     
