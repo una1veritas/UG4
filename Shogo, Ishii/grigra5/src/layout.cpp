@@ -144,7 +144,7 @@ public:
   ~PointSet() {}
   PointSet(std::istream &in) : std::vector<POINT_T>() {
     TYPE x, y; in >> x, in >> y;
-    while(!in.eof()) push_back(POINT_T(x,y)), in >> x, in >> y;
+    while(!in.eof()) std::vector<Point<TYPE> >::push_back(POINT_T(x,y)), in >> x, in >> y;
   }
   PointSet(PointSet &set) : std::vector<POINT_T>(set.size()) {
     for(int i=0; i<set.size(); ++i) { std::vector<POINT_T>::at(i) = set[i]; }
