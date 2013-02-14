@@ -11,7 +11,9 @@ layout.exe : ${OBJS:=.o}
 %.o : src/%.cpp
 	g++ -c ${CPPOPTS} $^ -o $@
 
+test: layout.exe coordinate.txt
+	./layout.exe 32 < coordinate.txt > coordinate.out
+
 .PHONY : clean
 clean:
-	\rm -f *.exe *.o
-	
+	\rm -f *.exe *.o *.out
