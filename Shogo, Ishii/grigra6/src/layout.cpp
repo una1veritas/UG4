@@ -27,7 +27,7 @@ namespace {
   int modulo(int a, int b) {
     return a % b;
   }
-  
+
   template<typename TYPE>
   class Point {
     TYPE x, y;
@@ -45,8 +45,9 @@ namespace {
     }
 
   public:
-    inline static Point right_top(Point a, Point b) {
-      return Point(std::max(a.x, b.x), std::max(a.y, b.y));
+
+    inline Point rightTop(Point b) {
+      return Point(std::max(x, b.x), std::max(y, b.y));
     }
 
     Point() : x(0), y(0) {}
@@ -58,7 +59,7 @@ namespace {
     void setX (TYPE x) { this-> x = x; }
     void setY (TYPE y) { this-> y = y; }
     Point trans(Point px, Point py, int grid) {
-      Point rt = right_top(px, py);
+      Point rt = px.rightTop(py);
       Point t(*this - rt);
 
       TYPE ux = calc_u(t.x, grid), vx = calc_v(t.x, ux, grid);
@@ -94,7 +95,7 @@ namespace {
       return r;
     }
     TYPE sum() const { return x + y; }
-    TYPE length() const { return abs(x) + abs(y); }
+    TYPE length() const { return std::abs(x) + std::abs(y); }
     bool is_zero() const { return x == 0 && y == 0; }
     bool operator ==(Point &p) { return (x == p.x) && (y == p.y); }
     Point &operator =(Point p) { x=p.x; y=p.y; return *this; }
@@ -104,14 +105,18 @@ namespace {
     Point operator -(Point &p) { Point q(x - p.x, y - p.y); return q; }
     void print(std::ostream &out) { out << x << " " << y; }
   };
-  
-  template<typename TYPE> std::ostream &operator <<(std::ostream &out, Point<TYPE> &p) {
+
+  template<typename TYPE>
+  std::ostream &operator <<(std::ostream &out, Point<TYPE> &p) {
     p.print(out);
     return out;
   }
 
   template<typename TYPE>
   Point<TYPE> rectMultiPoints(int n, TYPE grid_size) {
+    if(n <= 1) {
+      return Point<TYPE>(0,0);
+    }
     int ix = 0, iy = 0;
     for(int j=1,k=1; j<n; ++ix) {
       k += 2;
@@ -317,6 +322,7 @@ namespace {
     typedef PointSequence<TYPE> PSEQ_T;
     typedef std::vector< std::list< Point<int> > > RDIC_T;
     enum DIRECTION_T {
+      MISS = 0,
       RIGHT = 1,
       TOP = 2,
       RIGHT_TOP = 3
@@ -366,7 +372,7 @@ namespace {
     }
     
     POINT_T rectPush(POINT_T p, POINT_T rt) {
-      return POINT_T::right_top(p, rt) - rt;
+      return p.rightTop(rt) - rt;
     }
     
     void undiplicate(PSET_T &set, PSEQ_T &x, PSEQ_T &y) {
@@ -419,19 +425,22 @@ namespace {
       grid<int> cr(set.size());
       RDIC_T rd(set.size());
       int pi, pj, v;
-      for(int i=0; i<set.size(); ++i) {
-        for(int j=0; j<set.size(); ++j) {
+      for(unsigned int i=0; i<set.size(); ++i) {
+        for(unsigned int j=0; j<set.size(); ++j) {
           if(i != rewindMultiPoints(i, x)) {
             continue;
           }
           if(j != rewindMultiPoints(j, y)) {
             continue;
           }
+          if(!checkPointPair(i,j,x,y)) {
+            continue;
+          }
           pi = prevX(i,j,x,y);
           pi = rewindMultiPoints(pi, x);
           v = pi < 0 ? 0 : cr.ref(pi, j);
           rd[v+1].push_back(Point<int>(i,j));
-          cr.ref(i, j) = v+1;
+          cr.ref(i,j) = v+1;
         }
       }
       calcTranslateTable(set, x, y, rd);
@@ -439,7 +448,7 @@ namespace {
     
     void calcTranslateTable(PSET_T &set, PSEQ_T &x, PSEQ_T &y, RDIC_T &rd) {
       grid<POINT_T> pt(set.size()), tt(set.size());
-      grid<char> dir(set.size());
+      grid<int> dir(set.size());
       int i, j, pi, pj;
       bool multix, multiy;
       TYPE mxlen, mylen;
@@ -456,34 +465,36 @@ namespace {
           pj = rewindMultiPoints(pj, y);
           switch(checkPointPair(i,j,x,y)) {
             case SINGLE : {
-              art = POINT_T::right_top(pi < 0 ? POINT_T(0,0) : x.ref(pi),
-                                       pj < 0 ? POINT_T(0,0) : y.ref(pj));
-              a = x.ref(i).trans(pi < 0 ? POINT_T(0,0) : x.ref(pi),
-                                 pj < 0 ? POINT_T(0,0) : y.ref(pj),
+              art = pi < 0 ? x.ref(i) : x.ref(pi);
+              art = art.rightTop(pj < 0 ? x.ref(i) : y.ref(pj));
+
+              a = x.ref(i).trans(pi < 0 ? x.ref(i) : x.ref(pi),
+                                 pj < 0 ? y.ref(j) : y.ref(pj),
                                  grid_size);
-              tt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
-                          + rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x) , grid_size), art);
-              pt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj))
-                          + a - art;
+              pa = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj)) - art + a;
+              ta = rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x), grid_size), art); 
+
+              tt.ref(i,j) = ((pi < 0 || pj < 0) ? POINT_T(0,0) : tt.ref(pi,pj)) + ta;
+              pt.ref(i,j) = pa;
               dir.ref(i,j) = RIGHT_TOP;
             } break;
             case DOUBLE : {
-              art = POINT_T::right_top(x.ref(pi), y.ref(j));
+              art = x.ref(pi).rightTop(y.ref(j));
               a = x.ref(i).trans(x.ref(pi), y.ref(j), grid_size);
-              pa = (pi < 0 ? POINT_T(0,0) : tt.ref(pi,j)) + a - art;
+              pa = tt.ref(pi,j) - art + a;
               ta = rectPush(x.ref(i) + a + rectMultiPoints(multiPointsLen(i,x), grid_size), art);
               
-              brt = POINT_T::right_top(x.ref(i), y.ref(pj));
+              brt = x.ref(i).rightTop(y.ref(pj));
               b = y.ref(j).trans(x.ref(i), y.ref(pj), grid_size);
-              pb = (pj < 0 ? POINT_T(0,0) : tt.ref(i,pj)) + b - brt;
+              pb = tt.ref(i,pj) - brt + b;
               tb = rectPush(y.ref(j) + b + rectMultiPoints(multiPointsLen(j,y), grid_size), brt);
               
               if(ta.length() <= tb.length()) {
-                tt.ref(i,j) = ((pi < 0) ? POINT_T(0,0) : tt.ref(pi,j)) + ta;
+                tt.ref(i,j) = tt.ref(pi,j) + ta;
                 pt.ref(i,j) = pa;
                 dir.ref(i,j) = RIGHT;
               } else {
-                tt.ref(i,j) = ((pj < 0) ? POINT_T(0,0) : tt.ref(i,pj)) + tb;
+                tt.ref(i,j) = tt.ref(i,pj) + tb;
                 pt.ref(i,j) = pb;
                 dir.ref(i,j) = TOP;
               }
@@ -491,12 +502,12 @@ namespace {
           }
         }
       }
+
       applyLayout(set,x,y,pt,dir);
     }
     
-    void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<char> &dir) {
-      std::list<int> ap;
-      bool multix, multiy, istop, isright;
+    void applyLayout(PSET_T &set, PSEQ_T &x, PSEQ_T &y, grid<POINT_T> &tt, grid<int> &dir) {
+      bool multix, multiy;
       int ix = set.size()-1, iy = set.size()-1, px = 0, py = 0;
       POINT_T trans;
       PSET_T tmp(set);
@@ -511,8 +522,6 @@ namespace {
           std::cerr << tt.ref(ix, iy) << " : " << x[ix] << " " << y[iy] << std::endl;
           return;
         }
-        istop = dir.ref(ix,iy) == TOP;
-        isright = dir.ref(ix,iy) == RIGHT;
         trans = tt.ref(ix, iy);
         px = prevX(ix,iy,x,y);
         py = prevY(ix,iy,x,y);
@@ -523,10 +532,8 @@ namespace {
             if(multix) {
               int it = ix, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,x);
               POINT_T rect = rectMultiPoints<TYPE>(l, grid_size);
-              while((it - ix <= l) && x.ref(ix) == x.ref(it))
-              {
+              while((it - ix <= l) && x.ref(ix) == x.ref(it)) {
                 tmp[x[it]] += trans + POINT_T(rc * grid_size, tc * grid_size);
-                ap.push_front(x[it]);
                 if(tc == tb) {
                   if(rc == 0) {
                     ++rb;
@@ -542,8 +549,7 @@ namespace {
                 ++it;
               }
             } else {
-              ap.push_front(x[ix]);
-              tmp[*ap.begin()] += trans;
+              tmp[x[ix]] += trans;
             }
             ix=px;
             iy=py;
@@ -553,10 +559,8 @@ namespace {
               if(multix) {
                 int it = ix, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,x);
                 POINT_T rect = rectMultiPoints<TYPE>(l, grid_size);
-                while((it - ix <= l) && x.ref(ix) == x.ref(it))
-                {
+                while((it - ix <= l) && x.ref(ix) == x.ref(it)) {
                   tmp[x[it]] += trans + POINT_T(rc * grid_size, tc * grid_size);
-                  ap.push_front(x[it]);
                   if(tc == tb) {
                     if(rc == 0) {
                       ++rb;
@@ -572,18 +576,15 @@ namespace {
                   ++it;
                 }
               } else {
-                ap.push_front(x[ix]);
-                tmp[*ap.begin()] += trans;
+                tmp[x[ix]] += trans;
               }
               ix=px;
             } else {
               if(multiy) {
                 int it = iy, rb = 0, tb = 0, rc = 0, tc = 0, l = multiPointsLen(it,y);
                 POINT_T rect = rectMultiPoints<TYPE>(l, grid_size);
-                while((it - iy <= l) && y.ref(iy) == y.ref(it))
-                {
+                while((it - iy <= l) && y.ref(iy) == y.ref(it)) {
                   tmp[y[it]] += trans + POINT_T(rc * grid_size, tc * grid_size);
-                  ap.push_front(y[it]);
                   if(tc == tb) {
                     if(rc == 0) {
                       ++rb; ++tb;
@@ -598,8 +599,7 @@ namespace {
                   ++it;
                 }
               } else {
-                ap.push_front(y[iy]);
-                tmp[*ap.begin()] += trans;
+                tmp[y[iy]] += trans;
               }
               iy=py;
             }
@@ -639,7 +639,7 @@ namespace {
     PSET_T &match(PSET_T &p) {
       PSEQ_T sortx(p, true), sorty(p, false);
       listCountRects(p, sortx, sorty);
-      //foldLayout(p);
+      foldLayout(p);
       return p;
     }
     
