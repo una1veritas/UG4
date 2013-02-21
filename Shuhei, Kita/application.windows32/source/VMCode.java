@@ -1,5 +1,14 @@
+/*
+ * javaVM マシンコードデータ。
+ * <pre>
+ * machine code object.
+ * <pre>
+ */
 import java.util.*;
 public class VMCode {
+	/* @serial
+	 * 
+	 */
 	private int index = -1;
 	private int binary;
 	private String name;
@@ -16,24 +25,38 @@ public class VMCode {
 	
 	private static VMCode[] VMCodes;
 	
+	/*
+	 * read csv file & create code object.
+	 * @param sts csvFile
+	 */
 	public static void setVMCodes(String[] sts){
 		VMCodes = new VMCode[sts.length];
 		for(int i=0; i<sts.length; i++){
 			VMCodes[i] = new VMCode(sts[i]);
-			
 		}
 	}
+	/*
+	 * get code object list.
+	 * @return list of code object
+	 */
 	public static VMCode[] getVMCodes(){
 		return VMCodes;
 	}
-	
+	/*
+	 * マシンコードテーブル用。
+	 * @param st csvファイルの行。
+	 */
 	VMCode(String st){
 		String[] sts = st.split(",");
 		binary = Integer.parseInt(sts[0]);
 		name = sts[1];
 		num = Integer.parseInt(sts[2]) - 1;
 	}
-	
+	/*
+	 * メソッドの命令バイト列用
+	 * @param b 命令バイト
+	 * @param d 命令バイト列でのindex
+	 */
 	VMCode(Byte b, int d){
 		index = d;
 		int d1 = (b.intValue()&0xff);
@@ -49,7 +72,9 @@ public class VMCode {
 	
 	
 	///METHOD --------------------------------------
-	//print
+	/*
+	 * デバッグ用。
+	 */
 	public void print(){
 		System.out.println(index + " ["+String.format("%02X ", binary)+", "+name+"]");
 		System.out.println(Arrays.toString(bytes));
@@ -98,6 +123,11 @@ public class VMCode {
 	public void setJump(int d){
 		jump = d;
 	}
+	/*
+	 * 関数呼び出しの呼び出し先情報セット。
+	 * @param cp コンスタントプール。
+	 * @param num コンスタントプールのズレ。
+	 */
 	public void setInvoke(CPInfo[] cp, int num){
 		//numは、cpのズレ
 		String st;
@@ -106,7 +136,7 @@ public class VMCode {
 			int d3 = 0;
 			boolean flag = false;
 			while(true){
-				//メソッド名取得  
+				//
 				if(invoke==null){
 					int d2 = (cp[d1].getTag().intValue()&0xff);
 					//utf-8 only
@@ -117,7 +147,7 @@ public class VMCode {
 					}else if(d2 == 10){
 						Byte[] bs = cp[d1].getInfo();
 						d1 = ByteFunc.getInt(bs[2], bs[3]) -1 -num;
-						//クラス名取得 
+						//
 						d3 = ByteFunc.getInt(bs[0], bs[1]) -1 -num;
 						bs = cp[d3].getInfo();
 						d3 = ByteFunc.getInt(bs[0], bs[1]) -1 -num;

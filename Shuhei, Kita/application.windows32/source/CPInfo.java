@@ -1,3 +1,6 @@
+/*
+ * コンスタントプールの要素。
+ */
 import java.util.*;
 import java.io.*;
 
@@ -10,6 +13,12 @@ public class CPInfo{
 	//static Byte cp_info_tag;	//1byte
 	//static List<Byte> info = new ArrayList<Byte>();
 	
+	/*
+	 * コンスタントプール要素。
+	 * @param bytes classファイルのバイト列。
+	 * @param index bytes内でのindex。
+	 * @param id classに割り振ってあるID。
+	 */
 	CPInfo(List<Byte> bytes, int index, int id){
 		ID = id;
 		cp_info_tag = bytes.get(index++);
