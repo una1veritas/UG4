@@ -1,46 +1,37 @@
+/*
+ * field & method クラス。
+ */
 import java.util.List;
-
 
 public class FieldInfo{
 	private int ID;
 	private Byte[] access_flags 	= new Byte[2];
-	//private Byte[] name_index 		= new Byte[2];
 	private int name_index;
-	//private Byte[] descriptor_index = new Byte[2];
 	private int descriptor_index;
-	//private Byte[] attributes_count = new Byte[2];
 	private int attributes_count;
 	private AttributeInfo[] attributes;
 	private int next_index;
 	
 	FieldInfo(List<Byte> bytes, int index, int id){
-		System.out.println("start: "+String.format("%02X ", index));
+		//System.out.println("start: "+String.format("%02X ", index));
 		ID = id;
 		//access_flags
 		access_flags[0] = bytes.get(index++);
 		access_flags[1] = bytes.get(index++);
 		//name_index
 		name_index = ByteFunc.getInt(bytes.get(index++), bytes.get(index++)) - 1;
-		//name_index[0] = bytes.get(index++);
-		//name_index[1] = bytes.get(index++);
-		//descriptor_index
-		//descriptor_index[0] = bytes.get(index++);
-		//descriptor_index[1] = bytes.get(index++);
 		descriptor_index = ByteFunc.getInt(bytes.get(index++), bytes.get(index++)) - 1;
-		//attributes_count
-		//attributes_count[0] = bytes.get(index++);
-		//attributes_count[1] = bytes.get(index++);
 		attributes_count = ByteFunc.getInt(bytes.get(index++), bytes.get(index++));
-		System.out.println("attribute count: "+attributes_count);
+		//System.out.println("attribute count: "+attributes_count);
 		
 		//attributes
 		attributes = new AttributeInfo[attributes_count];
 		for(int i=0; i<attributes_count; i++){
 			//debug
-			System.out.println("method's attribute  index: "+String.format("%02X ", index));
+			//System.out.println("method's attribute  index: "+String.format("%02X ", index));
 			attributes[i] = new AttributeInfo(bytes, index, ID);
 			index = attributes[i].getNextIndex();
-			System.out.println("last: "+String.format("%02X ", index));
+			//System.out.println("last: "+String.format("%02X ", index));
 		}
 		next_index = index;
 

@@ -1,11 +1,10 @@
+/*
+ * アトリビュート（属性）クラス。
+ */
 import java.util.List;
-
-
 public class AttributeInfo{
 	private int ID;
-	//private Byte[] attribute_name_index = new Byte[2];
 	private int attribute_name_index;
-	//private Byte[] attribute_length = new Byte[4];
 	private int attribute_length;
 	private Byte[] info;	//[attribute_length][1byte]
 	
@@ -13,9 +12,6 @@ public class AttributeInfo{
 	
 	AttributeInfo(List<Byte> bytes, int index, int id){
 		ID = id;
-		//attribute_name_index
-		//attribute_name_index[0] = bytes.get(index++);
-		//attribute_name_index[1] = bytes.get(index++);
 		attribute_name_index = ByteFunc.getInt(bytes.get(index++), bytes.get(index++))-1;
 		//attribute_length
 		Byte[] array = new Byte[4];
@@ -42,6 +38,11 @@ public class AttributeInfo{
 		//System.out.println("cp index: "+ByteFunc.getInt(attribute_name_index[0], attribute_name_index[1]));
 		return attribute_name_index;
 	}
+	/*
+	 * コードアトリビュートの生成。
+	 * @param name メソッドの名前
+	 * @return CodeAttribute メソッドの実際の処理情報。
+	 */
 	public CodeAttribute getCode(String name){
 		return  new CodeAttribute(name, info, ID);
 		
