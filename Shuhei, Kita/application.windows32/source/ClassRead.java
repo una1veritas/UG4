@@ -1,3 +1,6 @@
+/*
+ * classのデータ保持クラス
+ */
 import java.util.*;
 import java.io.*;
 
@@ -141,6 +144,9 @@ public class ClassRead{
 	}
 	
 	//set invoke of method
+	/*
+	 * 関数の呼び出し関係セット
+	 */
 	public void setMethodInvoke(){
 		for(int i=0; i<codes.length; i++){
 			codes[i].setInvoke(cp, NUMBER);

@@ -1,3 +1,7 @@
+/*
+ * コードアトリビュートクラス。
+ * メソッドの実際の処理に関する情報保持。
+*/
 import java.util.*;
 public class CodeAttribute{
 	public int ID;
@@ -283,6 +287,9 @@ public class CodeAttribute{
 	}
 	
 	//CodeAttribute edit distance
+	/*
+	 * バイト列の編集距離
+	 */
 	public int edit(CodeAttribute code1){
 		//return ByteFunc.edit(code, code1.getCode());
 		Byte[] bytes1 = code;
@@ -308,6 +315,9 @@ public class CodeAttribute{
 		return result + (int)(LOOP_BIAS * Math.abs(this.getMaxJump() - code1.getMaxJump()));
 	}
 	//CodeAttribute edit distance
+	/*
+	 * 命令バイト列の編集距離（引数を省く）
+	 */
 	public int edit_codeSet(CodeAttribute code1){
 		//return ByteFunc.edit(code, code1.getCode());
 		Byte[] bytes1 = code_set;

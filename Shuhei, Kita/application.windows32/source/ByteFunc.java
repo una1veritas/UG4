@@ -1,3 +1,6 @@
+/*
+ * バイト演算用クラス。
+ */
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,12 @@ public class ByteFunc{
 	}
 	
 	//編集距離　ゲット
+	/*
+	 * バイト列の編集距離（レーベンシュタイン距離）の取得。
+	 * @param bytes1 比較バイト列
+	 * @param bytes2 比較バイト列
+	 * @return バイト列間の距離
+	 */
 	int edit(Byte[] bytes1, Byte[] bytes2){
 		int len1=bytes1.length,len2=bytes2.length;
 		int[][] row = new int[len1+1][len2+1];
