@@ -81,4 +81,4 @@ class Automaton:
         stream += str(self.current)
         stream += ")"
         return stream
-    
+

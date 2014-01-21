@@ -4,6 +4,8 @@ Created on 2014/01/20
 @author: sin
 '''
 from automaton import Automaton
+from suffixtrie import SuffixTrie
+
 
 if __name__ == '__main__':
     pass
@@ -18,3 +20,8 @@ print "Feeding", "aababa", " to the automaton:\n ", automaton.printOn("")
 print "in the state ", automaton.current
 print "results in the state ", automaton.transfer("aababa")
 print "In another words, a predicate \"the automaton accepts the input\" is ", automaton.accept("aababa")
+print
+
+mytrie = SuffixTrie("abracadabra", [3, 5])
+print
+print "My trie is ", mytrie.printOn(""), "."
