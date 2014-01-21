@@ -59,8 +59,8 @@ class Automaton:
         if self.transfer(example) in self.finals :
             return True
         return False
-    
-    def printOn(self, stream):
+        
+    def __str__(self):
         stream = "Automaton("
         stream += "states{"
         for s in self.states:
@@ -73,9 +73,11 @@ class Automaton:
             stream += ", "
         stream += "), "
         stream += "finals{"
-        for s in self.finals:
-            stream += str(s)
-            stream += ", "
+        tmp = list(self.finals)
+        for index in range(0, len(tmp)) :
+            stream += str(tmp[index])
+            if index+1 < len(tmp) :
+                stream += ", "
         stream += "}"
         stream += "; current = "
         stream += str(self.current)
