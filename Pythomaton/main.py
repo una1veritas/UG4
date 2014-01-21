@@ -22,6 +22,6 @@ print "results in the state ", automaton.transfer("aababa")
 print "In another words, a predicate \"the automaton accepts the input\" is ", automaton.accept("aababa")
 print
 
-mytrie = SuffixTrie("abracadabra", [3, 5])
+mytrie = SuffixTrie("abracadabra", "011010010111", [0, 3, 5])
 print
 print "My trie is ", mytrie.printOn(""), "."

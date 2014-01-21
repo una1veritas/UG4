@@ -10,10 +10,11 @@ class SuffixTrie:
     represented by a consistent set of labeled strings.
     '''
     master = ""
+    labels = ""
     members = set()
-    definition = (master, members)
+    definition = (master, labels, members)
     
-    def __init__(self, master, indexes):
+    def __init__(self, master, classlabels, indexes):
         '''
         instance initializer
         '''
@@ -22,9 +23,12 @@ class SuffixTrie:
         '''ensures samples is a ordered list '''
         ''' the first gives the primary path '''
         self.master = str(master)
+        self.labels = str(classlabels)
         tempsuffixes = list()
         for index in indexes :
             tmpstr = self.master[index:]
+            tmplabel = self.labels[index:]
+            flag = True
             tempsuffixes.append(tmpstr)
             print "suffix = ", tmpstr, ", set = ", tempsuffixes
             self.members.add(index)
@@ -34,6 +38,9 @@ class SuffixTrie:
         stream += "SuffixTrie("
         stream += "master("
         stream += self.master
+        stream += "), "
+        stream += "labels("
+        stream += self.labels
         stream += "), "
         stream += "member("
         for i in self.members :
