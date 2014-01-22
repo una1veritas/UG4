@@ -26,22 +26,31 @@ print "results in the state ", automaton.transfer(master[:5])
 print "In another words, a predicate \"the automaton accepts the input\" is ", automaton.accept(master[:5])
 print
 
+print "\"abdckgb\"[:3] is ", "abdckgb"[:3]
 print "My tries: \n"
 
 tries = list()
 indices = set(range(len(master), 0, -1))
+print "for ", master, " with labels ", labels
 while len(indices) > 0 :
     sortedindices = list(indices)
     sortedindices.sort(reverse=True)
     mytrie = SuffixTrie()
     index = sortedindices[0]
-    indices.remove(index)
-    sortedindices.pop(0)
-    mytrie.add(master[index:], labels[index], index)
+    mytrie.add(master[index:], labels[index:], index)
+    print index, " added as origin path. ", mytrie
+    addedindices = set()
+    addedindices.add(index)
     for index in sortedindices :
+        if index in addedindices :
+            continue
         if mytrie.add(master[index:], labels[index:], index) :
-            indices.remove(index)
-    tries.append(mytrie)
+            print index, " added.", mytrie
+            addedindices.add(index)
     print mytrie
+    tries.append(mytrie)
+    print indices, ", ", addedindices
+    for elem in addedindices:
+        indices.remove(elem)
     ''' to the next iteration '''    
 

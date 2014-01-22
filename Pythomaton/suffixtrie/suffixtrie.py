@@ -23,18 +23,20 @@ class SuffixTrie:
         for elem in self.members :
             tstr = elem[0]
             tlabs = elem[1]
+            orgindex = elem[2]
+            print "compare ", (tstr, tlabs), ", ", (astring, labels)
             if tlabs[0] != labels[0] :
                 conflag = False
                 print "failed at head. "
                 break
-            for index in range(0, min(len(tstr), len(astring)) ) :
-                if astring[index] != tstr[index] :
+            for sufflen in range(1, min(len(tstr), len(astring)) ) :
+                if astring[sufflen-1] != tstr[sufflen-1] :
                     ''' Branching off. Check the next string. '''
                     break
-                if labels[index+1] != tlabs[index+1] :
+                if labels[sufflen] != tlabs[sufflen] :
                     ''' Labels are conflicting. This is non-consistent addition. '''
                     conflag = False
-                    print "failed by confliction at label ", index+1
+                    print "failed at ", orgindex , " by contradiction betw. '",astring[:sufflen-1], "': ", labels[:sufflen], ", '", tstr[:sufflen-1], "': ", tlabs[:sufflen] , " at label ", sufflen
                     break
             if not(conflag) :
                 break
