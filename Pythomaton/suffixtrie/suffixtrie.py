@@ -45,14 +45,10 @@ class SuffixTrie:
         return False
 
     def __str__(self):
-        stream = "SuffixTrie( "
-        tmp = list(self.members)
-        for index in range(0, len(tmp) ) :
-            stream += str( tmp[index] )
-            if index+1 < len(tmp) :
-                stream += ", "
-        stream += " )"
+        stream = "SuffixTrie(set("
+        stream += repr(list(self.members))
+        stream += "])"
         return stream
 
     def __repr__(self):
-        return str(self.definition)
+        return str(self)
