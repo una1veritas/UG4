@@ -4,8 +4,7 @@ Created on 2014/01/20
 @author: sin
 '''
 
-from automaton import Automaton
-from suffixtrie import SuffixTrie
+from automaton.PrefixAutomaton import *
 
 if __name__ == '__main__':
     pass
@@ -26,31 +25,34 @@ print "results in the state ", automaton.transfer(master[:5])
 print "In another words, a predicate \"the automaton accepts the input\" is ", automaton.accept(master[:5])
 print
 
-print "\"abdckgb\"[:3] is ", "abdckgb"[:3]
-print "My tries: \n"
+prefsample = PrefixSample('0b1a1a1b1a1b0a0a1a1b0b1a1b0a0a1a1b0a0b0a1', None)
+print 'inline representation of a prefixsample: ', prefsample, '\n'
+'''
+for i in range(0,len(prefsample)+1) :
+    print i,'th prefix = ',prefsample[:i], '\n'
+print
+'''
 
-tries = list()
-indices = set(range(len(master), 0, -1))
-print "for ", master, " with labels ", labels
-while len(indices) > 0 :
-    sortedindices = list(indices)
-    sortedindices.sort(reverse=True)
-    mytrie = SuffixTrie()
-    index = sortedindices[0]
-    mytrie.add(master[index:], labels[index:], index)
-    print index, " added as origin path. ", mytrie
-    addedindices = set()
-    addedindices.add(index)
-    for index in sortedindices :
-        if index in addedindices :
-            continue
-        if mytrie.add(master[index:], labels[index:], index) :
-            print index, " added.", mytrie
-            addedindices.add(index)
-    print mytrie
-    tries.append(mytrie)
-    print indices, ", ", addedindices
-    for elem in addedindices:
-        indices.remove(elem)
-    ''' to the next iteration '''    
-
+prefsample = prefsample[0:min(17,len(prefsample))]
+print 'For sample ', prefsample, '.'
+forest = list()
+forest.append(SuffixTrie(prefsample[len(prefsample)]))
+print "at the first, ", forest , '.'
+print
+for suffindex in reversed(range(0, len(prefsample))) : 
+    print suffindex, ': ', prefsample[suffindex:]
+    for atrie in forest :
+        if atrie.add(prefsample[suffindex:]) :
+            break;
+    else:
+        forest.append(SuffixTrie(prefsample[suffindex:]))
+    tmp = ''
+    for atrie in forest :
+        tmp += str(atrie.names()) + ',  '
+    print tmp +'\n'
+print
+for trie in forest :
+    print trie.names()
+    
+else:
+    print 'fin.'
