@@ -62,7 +62,7 @@ class PrefixSample:
         return tmp
 
     def __str__(self) :
-        tmp = str(self.name) + '_\'' + self.labels[0]
+        tmp = str(self.name) + ':\'' + self.labels[0]
         for i in range(0, len(self) ) :
             tmp += self.string[i]
             tmp += self.labels[i+1]

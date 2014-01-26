@@ -25,22 +25,26 @@ print "results in the state ", automaton.transfer(master[:5])
 print "In another words, a predicate \"the automaton accepts the input\" is ", automaton.accept(master[:5])
 print
 
+'''
 prefsample = PrefixSample('0b1a1a1b1a1b0a0a1a1b0b1a1b0a0a1a1b0a0b0a1', None)
+'''
+prefsample = PrefixSample('0a0b0b0a1b0b0a0a1b0a0b0b1b0a0b0a0a1a1b0b0a0')
 print 'inline representation of a prefixsample: ', prefsample, '\n'
+print len(prefsample)
 '''
 for i in range(0,len(prefsample)+1) :
     print i,'th prefix = ',prefsample[:i], '\n'
 print
 '''
 
-prefsample = prefsample[0:min(17,len(prefsample))]
+prefsample = prefsample[0:min(10,len(prefsample))]
 print 'For sample ', prefsample, '.'
 forest = list()
 forest.append(SuffixTrie(prefsample[len(prefsample)]))
 print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
-    print suffindex, ': ', prefsample[suffindex:]
+    print prefsample[suffindex:]
     for atrie in forest :
         if atrie.add(prefsample[suffindex:]) :
             break;
@@ -48,11 +52,16 @@ for suffindex in reversed(range(0, len(prefsample))) :
         forest.append(SuffixTrie(prefsample[suffindex:]))
     tmp = ''
     for atrie in forest :
+        print atrie,
+        '''
         tmp += str(atrie.names()) + ',  '
-    print tmp +'\n'
+        '''
+    print
+    print
 print
+print prefsample
 for trie in forest :
-    print trie.names()
-    
+    sample = (sorted(trie.members, reverse=True))[0]
+    print sample.label(0), trie.names()
 else:
     print 'fin.'
