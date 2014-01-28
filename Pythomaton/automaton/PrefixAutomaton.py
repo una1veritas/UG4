@@ -70,9 +70,9 @@ class PrefixSample:
         return tmp
 
 
-class SuffixTrie:
+class Trie:
     ''' 
-    Trie like structure for the suffixes of a labeled string, 
+    Acyclic automaton for the suffixes of a labeled string, 
     represented by a consistent set of labeled strings.
     '''    
     def __init__(self, sample = None):
@@ -93,8 +93,10 @@ class SuffixTrie:
             if prefsample.label(0) != member.label(0) :
                 return False
             for i in range(0, min(len(prefsample), len(member)) ) :
+                '''
                 if prefsample.at(i) != member.at(i) :
                     break
+                '''
                 if prefsample.label(i+1) != member.label(i+1) :
                     return False
         self.members.add(prefsample)
@@ -108,18 +110,18 @@ class SuffixTrie:
         return sorted(names, reverse=True)
 
     def __str__(self):
-        stream = "T("
+        stream = "Trie(["
         memberlist = sorted(self.members)
         for i in range(0,len(memberlist)-1) :
             stream += str(memberlist[i])
             stream += ', '
         else:
             stream += str(memberlist[-1])
-        stream += ")"
+        stream += ")]"
         return stream
 
     def __repr__(self):
-        stream = "SuffixTrie(set("
+        stream = "Trie(["
         stream += repr(list(self.members))
         stream += "])"
         return stream

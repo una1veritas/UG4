@@ -36,11 +36,11 @@ for i in range(0,len(prefsample)+1) :
     print i,'th prefix = ',prefsample[:i], '\n'
 print
 '''
-
-prefsample = prefsample[0:min(10,len(prefsample))]
+samplelen = 21
+prefsample = prefsample[0:min(samplelen,len(prefsample))]
 print 'For sample ', prefsample, '.'
 forest = list()
-forest.append(SuffixTrie(prefsample[len(prefsample)]))
+forest.append(Trie(prefsample[len(prefsample)]))
 print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
@@ -49,14 +49,13 @@ for suffindex in reversed(range(0, len(prefsample))) :
         if atrie.add(prefsample[suffindex:]) :
             break;
     else:
-        forest.append(SuffixTrie(prefsample[suffindex:]))
+        forest.append(Trie(prefsample[suffindex:]))
     tmp = ''
     for atrie in forest :
-        print atrie,
+        print atrie, ', '
         '''
         tmp += str(atrie.names()) + ',  '
         '''
-    print
     print
 print
 print prefsample
