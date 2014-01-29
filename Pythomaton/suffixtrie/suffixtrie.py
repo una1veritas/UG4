@@ -47,9 +47,9 @@ class SuffixTrie:
         return False
 
     def __str__(self):
-        stream = "SuffixTrie(set("
+        stream = "SuffixTrie("
         stream += repr(list(self.members))
-        stream += "])"
+        stream += ")"
         return stream
 
     def __repr__(self):

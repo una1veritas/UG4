@@ -29,15 +29,18 @@ print
 print "\"abdckgb\"[:3] is ", "abdckgb"[:3]
 print "My tries: \n"
 
-tries = list()
-indices = set(range(len(master), 0, -1))
+forest = list()
 print "for ", master, " with labels ", labels
-while len(indices) > 0 :
-    sortedindices = list(indices)
+for sufindex in range(len(master), 0, -1) :
+    '''sortedindices = list(indices)
     sortedindices.sort(reverse=True)
+    '''
     mytrie = SuffixTrie()
+    '''
     index = sortedindices[0]
-    mytrie.add(master[index:], labels[index:], index)
+    '''
+    mytrie.add(master[sufindex:], labels[sufindex:], sufindex)
+    '''
     print index, " added as origin path. ", mytrie
     addedindices = set()
     addedindices.add(index)
@@ -47,10 +50,14 @@ while len(indices) > 0 :
         if mytrie.add(master[index:], labels[index:], index) :
             print index, " added.", mytrie
             addedindices.add(index)
-    print mytrie
-    tries.append(mytrie)
+    '''
+    print "\n", mytrie, "\n"
+    forest.append(mytrie)
+    '''print "\nAs a forest: \n", forest '''
+    '''
     print indices, ", ", addedindices
     for elem in addedindices:
         indices.remove(elem)
+        '''
     ''' to the next iteration '''    
 
