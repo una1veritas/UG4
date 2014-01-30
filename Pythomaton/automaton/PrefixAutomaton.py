@@ -86,22 +86,28 @@ class Trie:
         else:
             self.members.add(PrefixSample(''))
 
-        
-    def add(self, prefsample):
+    def consistency(self, psample):
         '''check for all the members '''
-        for member in self.members :
-            if prefsample.label(0) != member.label(0) :
-                return False
-            for i in range(0, min(len(prefsample), len(member)) ) :
-                '''
-                if prefsample.at(i) != member.at(i) :
+        rescount = 0
+        for path in self.members :
+            '''the root label must be shared.'''
+            if psample.label(0) != path.label(0) :
+                return 0
+            else:
+                tmpcount = 1
+            for i in range(0, min(len(psample), len(path)) ) :
+                if psample.label(i+1) != path.label(i+1) :
+                    if psample.at(i) == path.at(i) :
+                        return 0
                     break
-                '''
-                if prefsample.label(i+1) != member.label(i+1) :
-                    return False
+                else:
+                    tmpcount += 1
+            rescount = max(rescount, tmpcount)
+        return rescount
+    
+    def addPath(self, prefsample):
         self.members.add(prefsample)
-        return True
-
+        
     def names(self):
         ''' names of members '''
         names = set()
