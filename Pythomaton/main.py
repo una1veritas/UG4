@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 print "Hello world!"
 if len(sys.argv) > 1 :
-    prefsample = sys.argv[1]
+    prefsample = PrefixSample(sys.argv[1])
     if len(sys.argv) > 2 :
         samplelen = int(sys.argv[2])
     else:
@@ -20,6 +20,9 @@ if len(sys.argv) > 1 :
 else:
     prefsample = PrefixSample('0a0b0b0a1b0b0a0a1b0a0b0b1b0a0b0a0a1a1b0b0a0')
     samplelen = len(prefsample)
+
+print 'inline representation of a prefixsample: ', prefsample
+print 'length ', samplelen
 
 '''
 master = "babbbaabababb"
@@ -37,16 +40,17 @@ print "In another words, a predicate \"the automaton accepts the input\" is ", a
 print
 '''
 
-prefsample = PrefixSample('0a0b0b0a1b0b0a0a1b0a0b0b1b0a0b0a0a1a1b0b0a0')
-print 'inline representation of a prefixsample: ', prefsample, '\n'
-print len(prefsample)
+
 '''
 for i in range(0,len(prefsample)+1) :
     print i,'th prefix = ',prefsample[:i], '\n'
 print
 '''
 
-prefsample = prefsample[0:min(samplelen,len(prefsample))]
+if samplelen > 0 :
+    prefsample = prefsample[:samplelen]
+else:
+    prefsample = prefsample[samplelen:]
 print 'For sample ', prefsample, '.'
 forest = list()
 forest.append(Trie(prefsample[len(prefsample)]))
@@ -54,15 +58,16 @@ print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
     print prefsample[suffindex:]
-    maxcons = 0
+    maxcons = False
     maxtrie = None
     for atrie in forest :
         consval = atrie.consistency(prefsample[suffindex:])
-        if consval > maxcons :
+        if consval != 0 :
             maxtrie = atrie
-            maxcons = consval
-            print 'maxtrie updated: ', maxcons, ', ', maxtrie 
-    if maxtrie != None :
+            maxcons = True
+            print 'maxtrie updated: ', maxcons, ', ', maxtrie
+            break
+    if maxtrie :
         maxtrie.addPath(prefsample[suffindex:])
     else:
         forest.append(Trie(prefsample[suffindex:]))

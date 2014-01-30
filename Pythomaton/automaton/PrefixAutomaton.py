@@ -88,22 +88,14 @@ class Trie:
 
     def consistency(self, psample):
         '''check for all the members '''
-        rescount = 0
         for path in self.members :
             '''the root label must be shared.'''
             if psample.label(0) != path.label(0) :
                 return 0
-            else:
-                tmpcount = 1
             for i in range(0, min(len(psample), len(path)) ) :
-                if psample.label(i+1) != path.label(i+1) :
-                    if psample.at(i) == path.at(i) :
-                        return 0
-                    break
-                else:
-                    tmpcount += 1
-            rescount = max(rescount, tmpcount)
-        return rescount
+                if psample.label(i+1) != path.label(i+1) and psample.at(i) == path.at(i) :
+                    return 0
+        return 1
     
     def addPath(self, prefsample):
         self.members.add(prefsample)
