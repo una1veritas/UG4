@@ -64,6 +64,25 @@ for suffindex in reversed(range(0, len(prefsample))) :
             dstrie = atrie
             break
     if dstrie != None :
+        c = prefsample.string[suffindex]
+        destins = dstrie.destinations(c)
+        destins.add(suffindex+1)
+        srcs = dstrie.names()
+        srcs.append(suffindex)
+        ''' 
+        this failure check must be done in searching process of dstrie, 
+        i.e., dstrie should be not only consistent but also already-existing state.
+        '''
+        print 'Checking enhancement ', srcs, ' -%c-> ' % c,
+        print sorted(destins, reverse=True), '; ',
+        for t in forest:
+            if destins.issubset(t.names()) :
+                print 'Ok, in ', t.names()
+                break;
+        else:
+            print 'Noooo!'
+            dstrie = None
+    if dstrie != None :
         print 'Add ', prefsample[suffindex:], ' to ', dstrie
         dstrie.addPath(prefsample[suffindex:])
     else:

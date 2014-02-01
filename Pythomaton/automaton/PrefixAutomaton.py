@@ -97,8 +97,21 @@ class Trie:
                     break
         return True
     
+    def destinations(self, c):
+        dst = set()
+        for branch in self.members:
+            if len(branch.string) > 0 and c == branch.string[0]:
+                dst.add(branch.name+1)
+        return dst
+    
     def addPath(self, prefsample):
         self.members.add(prefsample)
+    
+    def isin(self, idx):
+        if idx in self.members():
+            return True
+        else:
+            return False
         
     def names(self):
         ''' names of members '''
