@@ -58,18 +58,16 @@ print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
     print prefsample[suffindex:]
-    maxcons = False
-    maxtrie = None
+    dstrie = None
     for atrie in forest :
-        consval = atrie.consistency(prefsample[suffindex:])
-        if consval != 0 :
-            maxtrie = atrie
-            maxcons = True
-            print 'maxtrie updated: ', maxcons, ', ', maxtrie
+        if atrie.consistency(prefsample[suffindex:]) :
+            dstrie = atrie
             break
-    if maxtrie :
-        maxtrie.addPath(prefsample[suffindex:])
+    if dstrie != None :
+        print 'Add ', prefsample[suffindex:], ' to ', dstrie
+        dstrie.addPath(prefsample[suffindex:])
     else:
+        print 'Add new trie.'
         forest.append(Trie(prefsample[suffindex:]))
     print 'Forest: '
     for atrie in forest :
@@ -79,7 +77,7 @@ print
 print prefsample
 for trie in forest :
     sample = (sorted(trie.members, reverse=True))[0]
-    print sample.label(0), trie.names()
+    print sample.headlabel(), trie.names()
 else:
     print 'fin.'
 

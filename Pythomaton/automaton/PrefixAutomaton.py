@@ -45,13 +45,9 @@ class PrefixSample:
         '''print self.string.__getitem__(index), ' ',self.labels.__getitem__(labelslice)'''
         return PrefixSample(self.string.__getitem__(indexslice), self.labels.__getitem__(labelslice), newname)
 
-        
-    def label(self, index):
-        return self.labels[index]
+    def headlabel(self):
+        return self.labels[0]
     
-    def at(self, index):
-        return self.string[index]
-
     def __len__(self):
         return len(self.string)
     
@@ -87,15 +83,19 @@ class Trie:
             self.members.add(PrefixSample(''))
 
     def consistency(self, psample):
-        '''check for all the members '''
+        '''check for all the members '''        
         for path in self.members :
             '''the root label must be shared.'''
-            if psample.label(0) != path.label(0) :
-                return 0
+            if psample.headlabel() != path.headlabel() :
+                '''print 'Failed at root.' '''
+                return False
             for i in range(0, min(len(psample), len(path)) ) :
-                if psample.label(i+1) != path.label(i+1) and psample.at(i) == path.at(i) :
-                    return 0
-        return 1
+                if (psample.string[i] == path.string[i]) and (psample.labels[i+1] != path.labels[i+1]) :
+                    ''' print 'Failed at ', i, ' between ', psample, ' and ', path, '.' '''
+                    return False
+                if (psample.string[i] != path.string[i]) :
+                    break
+        return True
     
     def addPath(self, prefsample):
         self.members.add(prefsample)
