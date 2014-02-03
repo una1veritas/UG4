@@ -91,11 +91,11 @@ class Trie:
         for path in self.members :
             '''the root label must be shared.'''
             if psample.label(0) != path.label(0) :
-                return 0
+                return False
             for i in range(0, min(len(psample), len(path)) ) :
                 if psample.label(i+1) != path.label(i+1) and psample.at(i) == path.at(i) :
-                    return 0
-        return 1
+                    return False
+        return True
     
     def addPath(self, prefsample):
         self.members.add(prefsample)
