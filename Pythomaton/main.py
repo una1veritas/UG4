@@ -58,33 +58,36 @@ print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
     print prefsample[suffindex:]
-    dstrie = None
+    dstries = set()
     for atrie in forest :
-        if atrie.consistency(prefsample[suffindex:]) :
-            dstrie = atrie
+        if atrie.consistent(prefsample[suffindex:]) :
+            dstries.add(atrie)
             break
-    if dstrie != None :
+    availtries = list(dstries)
+    for atrie in availtries :
         c = prefsample.string[suffindex]
-        destins = dstrie.destinations(c)
-        destins.add(suffindex+1)
-        srcs = dstrie.names()
+        dests = atrie.destinations(c)
+        dests.add(suffindex+1)
+        srcs = atrie.names()
         srcs.append(suffindex)
         ''' 
         this failure check must be done in searching process of dstrie, 
         i.e., dstrie should be not only consistent but also already-existing state.
         '''
         print 'Checking enhancement ', srcs, ' -%c-> ' % c,
-        print sorted(destins, reverse=True), '; ',
+        print sorted(dests, reverse=True), '; ',
         for t in forest:
-            if destins.issubset(t.names()) :
+            if dests.issubset(t.names()) :
                 print 'Ok, in ', t.names()
                 break;
         else:
             print 'Noooo!'
-            dstrie = None
-    if dstrie != None :
-        print 'Add ', prefsample[suffindex:], ' to ', dstrie
-        dstrie.addPath(prefsample[suffindex:])
+            dstries.remove(atrie)
+        print 'candidates: ', dstries
+    if len(dstries) > 0 :
+        atrie = dstries.pop()
+        print 'Add ', prefsample[suffindex:], ' to ', atrie
+        atrie.addPath(prefsample[suffindex:])
     else:
         print 'Add new trie.'
         forest.append(Trie(prefsample[suffindex:]))

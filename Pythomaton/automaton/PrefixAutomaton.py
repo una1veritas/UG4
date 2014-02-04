@@ -82,7 +82,7 @@ class Trie:
         else:
             self.members.add(PrefixSample(''))
 
-    def consistency(self, psample):
+    def consistent(self, psample):
         '''check for all the members '''        
         for path in self.members :
             '''the root label must be shared.'''
