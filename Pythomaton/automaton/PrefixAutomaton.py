@@ -82,10 +82,11 @@ class Trie:
         else:
             self.members.add(PrefixSample(''))
 
-    def consistency(self, psample):
+    def consistent(self, psample):
         '''check for all the members '''        
         for path in self.members :
             '''the root label must be shared.'''
+<<<<<<< HEAD
             if psample.headlabel() != path.headlabel() :
                 '''print 'Failed at root.' '''
                 return False
@@ -103,6 +104,14 @@ class Trie:
             if len(branch.string) > 0 and c == branch.string[0]:
                 dst.add(branch.name+1)
         return dst
+=======
+            if psample.label(0) != path.label(0) :
+                return False
+            for i in range(0, min(len(psample), len(path)) ) :
+                if psample.label(i+1) != path.label(i+1) and psample.at(i) == path.at(i) :
+                    return False
+        return True
+>>>>>>> origin/@work
     
     def addPath(self, prefsample):
         self.members.add(prefsample)
