@@ -52,49 +52,20 @@ if samplelen > 0 :
 else:
     prefsample = prefsample[samplelen:]
 print 'For sample ', prefsample, '.'
-forest = list()
-forest.append(Trie(prefsample[len(prefsample)]))
+forest = Forest()
+forest.append(prefsample[len(prefsample)])
 print "at the first, ", forest , '.'
 print
 for suffindex in reversed(range(0, len(prefsample))) : 
     print prefsample[suffindex:]
-    dstrie = None
-    for atrie in forest :
-        if atrie.consistency(prefsample[suffindex:]) :
-            dstrie = atrie
-            break
-    if dstrie != None :
-        c = prefsample.string[suffindex]
-        destins = dstrie.destinations(c)
-        destins.add(suffindex+1)
-        srcs = dstrie.names()
-        srcs.append(suffindex)
-        ''' 
-        this failure check must be done in searching process of dstrie, 
-        i.e., dstrie should be not only consistent but also already-existing state.
-        '''
-        print 'Checking enhancement ', srcs, ' -%c-> ' % c,
-        print sorted(destins, reverse=True), '; ',
-        for t in forest:
-            if destins.issubset(t.names()) :
-                print 'Ok, in ', t.names()
-                break;
-        else:
-            print 'Noooo!'
-            dstrie = None
-    if dstrie != None :
-        print 'Add ', prefsample[suffindex:], ' to ', dstrie
-        dstrie.addPath(prefsample[suffindex:])
-    else:
-        print 'Add new trie.'
-        forest.append(Trie(prefsample[suffindex:]))
+    forest.enhance(prefsample[suffindex:])
     print 'Forest: '
-    for atrie in forest :
+    for atrie in forest.tries :
         print atrie, ', '
     print
 print
 print prefsample
-for trie in forest :
+for trie in forest.tries :
     sample = (sorted(trie.members, reverse=True))[0]
     print sample.headlabel(), trie.names()
 else:

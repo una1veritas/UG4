@@ -137,10 +137,63 @@ class Trie:
         stream += "])"
         return stream
     
+class Forest:
+    '''
+    classdocs
+    
+    tries = set()
+    '''
+    def __init__(self, trieset = None):
+        self.tries = list()
+        if trieset != None :
+            self.tries.append(trieset)
+    
+    def append(self, sample):
+        if isinstance(sample, PrefixSample):
+            self.tries.append(Trie(sample))
+            
+    def enhance(self, sample):
+        dstrie = None
+        for atrie in self.tries :
+            if atrie.consistency(sample) :
+                dstrie = atrie
+                break
+        if dstrie != None :
+            c = sample.string[0]
+            dests = dstrie.destinations(c)
+            dests.add(sample.name+1)
+            srcs = dstrie.names()
+            srcs.append(sample.name)
+            ''' 
+            this failure check must be done in searching process of dstrie, 
+            i.e., dstrie should be not only consistent but also already-existing state.
+            '''
+            print 'Checking enhancement ', srcs, ' -%c-> ' % c,
+            print sorted(dests, reverse=True), '; ',
+            for t in self.tries:
+                if dests.issubset(t.names()) :
+                    print 'Ok, in ', t.names()
+                    break;
+            else:
+                print 'Noooo!'
+                dstrie = None
+        if dstrie != None :
+            print 'Add ', sample, ' to ', dstrie
+            dstrie.addPath(sample)
+        else:
+            print 'Add new trie.'
+            self.append(sample)
+    
+    def __repr__(self):
+        stream = 'Forest('
+        stream += str(self.tries)
+        stream += ')'
+        return stream
+        
 class Automaton:
     '''
     classdocs
-    '''
+    
     initstate = 0
     current = 0
     states = set()
@@ -149,7 +202,8 @@ class Automaton:
     transfunc[(0,0)] = 0
     definition = (states, initstate, finals, transfunc)
     current = 0
-
+    '''
+    
     def __init__(self, sample, labels = ""):
         '''
         Constructor
