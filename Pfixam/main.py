@@ -5,10 +5,12 @@ import sys
 import re
 import math
 
+from am_class import Am
+
 argvs = sys.argv
+#print argvs
 
-print argvs
-
+am = Am(0)
 
 ex = argvs[1]
 label = argvs[2]
@@ -43,17 +45,16 @@ print i_work
 print
 
 
-st_0 = [0]
-st_1 = []
+
 for i in work.items():
     if i[1][1] == 0:
-        if i[1][0] not in st_0:
-            st_0.append(i[1][0])
+        if i[1][0] not in am.st_0:
+            am.st_0.append(i[1][0])
     else:
-        if i[1][0] not in st_1:
-            st_1.append(i[1][0])
-print "State 0:", st_0
-print "State 1:", st_1
+        if i[1][0] not in am.st_1:
+            am.st_1.append(i[1][0])
+print "State 0:", am.st_0
+print "State 1:", am.st_1
 print
 
 st = [[len(argvs[1])]]
@@ -66,11 +67,6 @@ print
 
 
 
-def checkequal(s1,s2):
-    if (s1 in st_0 and s2 in st_0) or (s1 in st_1 and s2 in st_1):
-        return 1
-    else:
-        return -1
 
 #find state
 def find_liststate(alist,i):
@@ -157,30 +153,30 @@ def unit(table,llist,st,olist):
                         else:
                             i = i-1
                 elif table[i][l] == 'O':
-            if table[i][l+1] != 'O':
-                flag = lastchecking(l,i,olist,table)
-                if flag == 0:
+                    if table[i][l+1] != 'O':
+                        flag = lastchecking(l,i,olist,table)
+                        if flag == 0:
                             change(st,l,i)
-                break
-            else:
-                i = i-1
-            elif i < exlen:
-                if table[i+1][l+1] != 'X':
-                    flag = lastchecking(l,i,olist,table)
-                    if flag == 0:
+                            break
+                        else:
+                            i = i-1
+                    elif i < exlen:
+                        if table[i+1][l+1] != 'X':
+                            flag = lastchecking(l,i,olist,table)
+                            if flag == 0:
                                 change(st,l,i)
-                    break
-                else:
-                    i = i-1
+                                break
+                            else:
+                                i = i-1
+                        else:
+                            i = i-1
+                    else:
+                        i = i-1
                 else:
                     i = i-1
             else:
-                        i = i-1
-        else:
-            i = i-1
-        else:
-            st = st+[[l]]
-        l = l-1
+                st = st+[[l]]
+            l = l-1
     print
     return st
 
@@ -189,13 +185,13 @@ def makeolist(llist,n):
     l = len(llist)
     olist = []
     if llist == []:
-    return olist
+        return olist
     else:
         while l > 0:
             olist.append(llist[0][1][0])
-        llist.pop(0)
-        l = l-1
-    return olist
+            llist.pop(0)
+            l = l-1
+        return olist
 
 
 def unitcheck(table,n,st):
@@ -226,26 +222,26 @@ print
 #main
 for i in range(n,-1,-1):
     for j in range(i-1,-1,-1):
-    if i == n:
-        if checkequal(i,j) == 1:
-            t[i][j] = "O"
-        else:
-            t[i][j] = "X"
-    else:
-        r1 = checkequal(i,j)
-        r2 = checkequal(i+1,j+1)
-        if r1 == 1 and r2 == 1:
-        if i_work[i,i+1] != i_work[j,j+1]:
-            t[i][j] = "Y"
+        if i == n:
+            if am.checkequal(i,j) == 1:
+                t[i][j] = "O"
             else:
-            t[i][j] = "O"
-        elif r1 == 1:
-        if i_work[i,i+1] != i_work[j,j+1]:
-            t[i][j] = "Y"
-        else:
                 t[i][j] = "X"
         else:
-            t[i][j] = "X"
+            r1 = am.checkequal(i,j)
+            r2 = am.checkequal(i+1,j+1)
+            if r1 == 1 and r2 == 1:
+                if i_work[i,i+1] != i_work[j,j+1]:
+                    t[i][j] = "Y"
+                else:
+                    t[i][j] = "O"
+            elif r1 == 1:
+                if i_work[i,i+1] != i_work[j,j+1]:
+                    t[i][j] = "Y"
+                else:
+                    t[i][j] = "X"
+            else:
+                t[i][j] = "X"
     print '%3d'%i,"->",t[i]
 
 
