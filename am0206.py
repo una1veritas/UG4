@@ -65,7 +65,6 @@ print n
 print
 
 
-
 def checkequal(s1,s2):
     if (s1 in st_0 and s2 in st_0) or (s1 in st_1 and s2 in st_1):
         return 1
@@ -107,21 +106,6 @@ def pickup(table,n,m):
 	j = j-1
     return r
 
-def lastchecking(i,j,olist,table):
-    ol = len(olist)-1
-    l = len(olist[1])
-    flag = 0
-    print "Olist:",i,olist[ol-i]
-    if olist[ol-i][1] !=[]:
-        while l > 0:
-	    if table[olist[ol-i][1][l-2]+1][i+1] == 'X':
-	        flag = 1
-            l = l-1
-    else:
-        print "non"
-
-    return flag
-
 #search automaton
 def unit(table,llist,st,olist):
     l = len(argvs[1])-1
@@ -137,35 +121,50 @@ def unit(table,llist,st,olist):
             while i > -1:
 	        if table[i][l] == 'Y':
 	            if table[i][l+1] == 'O':
-		        change(st,l,i)
+		        print "Y,O"
+			if table[l+1][l] == 'Y':
+		            change(st,l,i)
+			    break
+			else:
+			    i = i-1
+		    elif table[i][l+1] == '-':
+		        print "Y,-"
+			change(st,l,i)
 			break
 		    else:
-		        if table[i-1][l] =="-":
-			    change(st,l,i)
-			    break
-			else:
-			    i = i-1
+		        i = i-1
                 elif table[i][l] == 'O':
-		    if table[i][l+1] != 'O':
-		        flag = lastchecking(l,i,olist,table)
-		        if flag == 0:
-                            change(st,l,i)
+		    if table[i][l+1] == 'X':
+		        print "O,X"
+		        change(st,l,i)
+			break
+		    elif table[i][l+1] == 'O':
+		        print "O,O"
+		        if table[l+1][l] == 'O':
+		            change(st,l,i)
 			    break
 			else:
 			    i = i-1
-		    elif i < exlen:
-		        if table[i+1][l+1] != 'X':
-		            flag = lastchecking(l,i,olist,table)
-		            if flag == 0:
-                                change(st,l,i)
-			        break
-			    else:
-			        i = i-1
-		        else:
-		            i = i-1
+		    elif table[i][l+1] == '*':
+		        print "O,*"
+			if table[l+1][l] == '*':
+		            change(st,l,i)
+			    break
+			else:
+			    i = i-1
 		    else:
-                        i = i-1
-		else:
+		        i = i-1
+		elif table[i][l] == '*':
+		    if table[i][l+1] == 'O':
+		        print "*,O"
+			if table[l+1][l] == '*':
+		            change(st,l,i)
+			    break
+			else:
+			    i = i-1
+		    else:
+		        i = i-1
+    		else:
 		    i = i-1
 	    else:
 	        st = st+[[l]]
@@ -225,7 +224,7 @@ for i in range(n,-1,-1):
 	    r2 = checkequal(i+1,j+1)
 	    if r1 == 1 and r2 == 1:
 		if i_work[i,i+1] != i_work[j,j+1]:
-		    t[i][j] = "Y"
+		    t[i][j] = "*"
 	        else:
 		    t[i][j] = "O"
 	    elif r1 == 1:
