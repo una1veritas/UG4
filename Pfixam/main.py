@@ -119,21 +119,22 @@ def unit(table,llist,st,olist):
             print
             print l
             i = len(exstring)
-            while i > -1:
+#            while i > -1:
+            for i in range(len(exstring), -1, -1) :
                 if table[i][l] == 'Y':
                     if table[i][l+1] == 'O':
                         print "Y,O"
                         if table[l+1][l] == 'Y':
                             change(st,l,i)
                             break
-                        else:
-                            i = i-1
+#                        else:
+#                            i = i-1
                     elif table[i][l+1] == '-':
                         print "Y,-"
                         change(st,l,i)
                         break
-                    else:
-                        i = i-1
+#                   else:
+#                       i = i-1
                 elif table[i][l] == 'O':
                     if table[i][l+1] == 'X':
                         print "O,X"
@@ -144,29 +145,29 @@ def unit(table,llist,st,olist):
                         if table[l+1][l] == 'O':
                             change(st,l,i)
                             break
-                        else:
-                            i = i-1
+#                       else:
+#                           i = i-1
                     elif table[i][l+1] == '*':
                         print "O,*"
                         if table[l+1][l] == '*':
                             change(st,l,i)
                             break
-                        else:
-                            i = i-1
-                    else:
-                        i = i-1
+#                      else:
+#                          i = i-1
+#                    else:
+#                        i = i-1
                 elif table[i][l] == '*':
                     if table[i][l+1] == 'O':
                         print "*,O"
                         if table[l+1][l] == '*':
                             change(st,l,i)
                             break
-                        else:
-                            i = i-1
-                    else:
-                        i = i-1
-                else:
-                    i = i-1
+#                       else:
+#                           i = i-1
+#                   else:
+#                       i = i-1
+#               else:
+#                   i = i-1
             else:
                 st = st+[[l]]
             l = l-1
