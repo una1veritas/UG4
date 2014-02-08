@@ -1,75 +1,205 @@
 #am.py
 #automaton program
+'''
+    main based on am.py rev. 0206
+    written by Malynn
+'''
 
 import sys
-import re
-import math
+#import re
+#import math
+from am_class import *
 
-from am_class import Am, Table
-
-argvs = sys.argv
+(exstring, exlabels) = sys.argv[1:3]
 #print argvs
+'''
+test input: abbababb (0)01101101
+'''
+ex = exstring
+label = exlabels
+print ex
 
-am = Am(0)
-
-ex = argvs[1]
-label = argvs[2]
 i_ex = ex
 i_label = label
 
-#exlen = len(ex)
-print len(ex) #exlen
+exlen = len(ex)
+print exlen
 
+am = Automaton()
 #work = {}
-i = len(ex) #exlen
-
+i = exlen
 
 while ex != "":
     if i > 0:
-        am.work.update({(i-1,ex[i-1]):[i,int(label[i-1])]})
+        am.deftrans(i-1, ex[i-1], i, int(label[i-1]))
         i -= 1
         ex = ex[:-1]
         label = label[:-1]
     else:
         break
 else:
-    print "Input Dictionary:", am.work
+    print "Input Dictionary:", sorted(am.work.iteritems(), key=lambda arc: arc )
     print
 
 
-
-i_work = {}
-for i in am.work.items():
-    i_work.update({(i[0][0],i[1][0]):[i[0][1]]})
-print i_work
+'''
+i_work is computed on am.work,
+st_0 and st_1 are specified by am.accepting
+'''
+am.accepting.add(0)
+print "State 0:", am.nonaccepting() #st_0
+print "State 1:", am.accepting #st_1
 print
 
-
-
-for i in am.work.items():
-    if i[1][1] == 0:
-        if i[1][0] not in am.st_0:
-            am.st_0.append(i[1][0])
-    else:
-        if i[1][0] not in am.st_1:
-            am.st_1.append(i[1][0])
-print "State 0:", am.st_0
-print "State 1:", am.st_1
-print
-
-st = [[len(argvs[1])]]
+'''
+declare st, the list of states_list, with the group including the final state
+'''
+st = [[len(exstring)]]
 print "Last State:",st
 
 
-n = len(am.work)
+n = len(am)
 print n
 print
 
-table = Table(n, argvs[1])
+
+def checkequal(s1,s2):
+#    if (s1 in st_0 and s2 in st_0) or (s1 in st_1 and s2 in st_1):
+    if (s1 not in am.accepting and s2 not in am.accepting) or (s1 in am.accepting and s2 in am.accepting) :
+        return 1
+    else:
+        return -1
+
+#find state
+def find_liststate(alist,i):
+    x = 0
+#    print alist,i
+    for elem in alist:
+        if i in elem:
+            return x
+        x+=1
+    else:
+        return -1
+
+#changing
+def change_list(alist,i,j):
+    alist[j].append(i)
+    return alist
 
 
+#change list
+def change(group,i,j):
+    print 'change: group=', group, 'i=', i, 'j=', j
+    x = find_liststate(group,j)
+    print "list state:", x
+    group = change_list(group,i,x)
+    print group
+
+#pickup "O"
+def pickup(table,n,m):
+    r = []
+    j = n+m-1
+    while j > 0:
+        if table[j][n] == "O":
+            r.append([table[j][n],[j,n]])
+        else:
+            pass
+        j = j-1
+    return r
+
+#search automaton
+def unit(table,llist,st,olist):
+    l = len(exstring)-1
+#    ol = len(olist)-1
+    if llist == []:
+        print "not unit"
+    else:
+        while l > -1:
+#            flag = 0
+            print
+            print l
+            i = len(exstring)
+            while i > -1:
+                if table[i][l] == 'Y':
+                    if table[i][l+1] == 'O':
+                        print "Y,O"
+                        if table[l+1][l] == 'Y':
+                            change(st,l,i)
+                            break
+                        else:
+                            i = i-1
+                    elif table[i][l+1] == '-':
+                        print "Y,-"
+                        change(st,l,i)
+                        break
+                    else:
+                        i = i-1
+                elif table[i][l] == 'O':
+                    if table[i][l+1] == 'X':
+                        print "O,X"
+                        change(st,l,i)
+                        break
+                    elif table[i][l+1] == 'O':
+                        print "O,O"
+                        if table[l+1][l] == 'O':
+                            change(st,l,i)
+                            break
+                        else:
+                            i = i-1
+                    elif table[i][l+1] == '*':
+                        print "O,*"
+                        if table[l+1][l] == '*':
+                            change(st,l,i)
+                            break
+                        else:
+                            i = i-1
+                    else:
+                        i = i-1
+                elif table[i][l] == '*':
+                    if table[i][l+1] == 'O':
+                        print "*,O"
+                        if table[l+1][l] == '*':
+                            change(st,l,i)
+                            break
+                        else:
+                            i = i-1
+                    else:
+                        i = i-1
+                else:
+                    i = i-1
+            else:
+                st = st+[[l]]
+            l = l-1
+    print
+    return st
+
+#make "O"list
+def makeolist(llist,n):
+    l = len(llist)
+    olist = []
+    if llist == []:
+        return olist
+    else:
+        while l > 0:
+            olist.append(llist[0][1][0])
+            llist.pop(0)
+            l = l-1
+    return olist
 
 
+def unitcheck(table,n,st):
+    l = []
+    olist = []
+    for i in range(n+1):
+        olist = olist+[[n-i,makeolist(pickup(table,n-i,i),n-i)]]
+        l = l+pickup(table,n-i,i)
+    print "O_Table List:",l
+    print
+    print "Olist",olist
+    print
+    st = unit(table,l,st,olist)
+    print st
+    print
 
 #make table
 t = [["-" for i in range(n+1,0,-1)]for j in range(n+1,0,-1)]
@@ -82,24 +212,24 @@ for i in range(0,n+1):
         print "  ",i,
 print
 
-#main
+#main_0120
 for i in range(n,-1,-1):
     for j in range(i-1,-1,-1):
         if i == n:
-            if am.checkequal(i,j) == 1:
+            if checkequal(i,j) == 1:
                 t[i][j] = "O"
             else:
                 t[i][j] = "X"
         else:
-            r1 = am.checkequal(i,j)
-            r2 = am.checkequal(i+1,j+1)
+            r1 = checkequal(i,j)
+            r2 = checkequal(i+1,j+1)
             if r1 == 1 and r2 == 1:
-                if i_work[i,i+1] != i_work[j,j+1]:
-                    t[i][j] = "Y"
+                if am.ontrans(i,i+1) != am.ontrans(j,j+1):
+                    t[i][j] = "*"
                 else:
                     t[i][j] = "O"
             elif r1 == 1:
-                if i_work[i,i+1] != i_work[j,j+1]:
+                if am.ontrans(i,i+1) != am.ontrans(j,j+1):
                     t[i][j] = "Y"
                 else:
                     t[i][j] = "X"
@@ -110,8 +240,7 @@ for i in range(n,-1,-1):
 
 print
 print "Start Check"
-table.unitcheck(n,st)
+unitcheck(t,n,st)
 
-accept = [1]
-#end state
+accept = [1] #end state
 
