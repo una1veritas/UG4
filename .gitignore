@@ -8,12 +8,12 @@
 
 # Eclipse
 .metadata
-.project
+#.project
 .classpath
 .settings/
 .loadpath
 # CDT-specific
-.cproject
+#.cproject
 
 #Mac OS
 .DS_Store
