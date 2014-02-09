@@ -10,23 +10,44 @@ import sys
 #import math
 from am_class import *
 
+'''
+ex2
+0a0b0b0a1b0b0a0a1b0a0b0b1b0a0b0a0a1a1b0b0a0
+ abbabbaababbbabaaabba
+0000100010001000011000
+ex1
+abbabbaaba
+(0)00010001000
+'''
+
 (exstring, exlabels) = sys.argv[1:3]
 #print argvs
-'''
-test input: abbababb (0)01101101
-'''
-ex = exstring
-label = exlabels
-print ex
+if len(exstring) == len(exlabels) :
+    ex = exstring
+    label = exlabels
+    initlabel = 0
+    print ex, initlabel, label
+elif len(exstring)+1 == len(exlabels):
+    ex = exstring
+    label = exlabels[1:]
+    initlabel = exlabels[0]
+    print ex, initlabel, label
+else:
+    print 'Definition string format error.'
+    sys.exit()
 
-i_ex = ex
-i_label = label
 
+am = Automaton(ex, label, initlabel)
+print 'work =', sorted(am.work)
+print 'State 0:', sorted(am.rejecting())
+print 'State 1:', sorted(am.accepting)
+print
+'''
+work = {}
 exlen = len(ex)
 print exlen
-
-am = Automaton()
-#work = {}
+i_ex = ex
+i_label = label
 i = exlen
 
 while ex != "":
@@ -40,16 +61,14 @@ while ex != "":
 else:
     print "Input Dictionary:", sorted(am.work.iteritems(), key=lambda arc: arc )
     print
-
-
+'''
 '''
 i_work is computed on am.work,
 st_0 and st_1 are specified by am.accepting
-'''
-am.accepting.add(0)
-print "State 0:", am.nonaccepting() #st_0
-print "State 1:", am.accepting #st_1
+print "State 0:", st_0
+print "State 1:", st_1
 print
+'''
 
 '''
 declare st, the list of states_list, with the group including the final state
@@ -89,9 +108,9 @@ def change_list(alist,i,j):
 
 #change list
 def change(group,i,j):
-    print 'change: group=', group, 'i=', i, 'j=', j
+    #print 'change: group=', group, 'i=', i, 'j=', j
     x = find_liststate(group,j)
-    print "list state:", x
+    #print "list state:", x
     group = change_list(group,i,x)
     print group
 
@@ -243,5 +262,5 @@ print
 print "Start Check"
 unitcheck(t,n,st)
 
-accept = [1] #end state
+#accept = [1] #end state
 
