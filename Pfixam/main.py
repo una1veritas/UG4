@@ -108,7 +108,7 @@ def change_list(alist,i,j):
 
 #change list
 def change(group,i,j):
-    antiundeterministic = True
+    antiundeterministic = False
     print 'change:\ngroup =', group, 'i=', i, 'j=', j
     x = find_liststate(group,j)
     print "list state:", x, group[x]
@@ -155,13 +155,14 @@ def unit(table,llist,st,olist):
         while l > -1:
 #            flag = 0
             print
-            print l
+            print 'l =', l, 
             i = len(exstring)
 #            while i > -1:
             for i in range(len(exstring), -1, -1) :
+                print ', i =', i
                 if table[i][l] == 'Y':
                     if table[i][l+1] == 'O':
-                        print "Y,O"
+                        print '[i,l],[i,l+1]=', "Y,O"
                         if table[l+1][l] == 'Y':
                             change(st,l,i)
                             break
@@ -204,9 +205,11 @@ def unit(table,llist,st,olist):
 #                           i = i-1
 #                   else:
 #                       i = i-1
-#               else:
+                else:
+                    print 'all the checks failed.'
 #                   i = i-1
             else:
+                print 'append',[l],'as a new state.'
                 st = st+[[l]]
             l = l-1
     print
