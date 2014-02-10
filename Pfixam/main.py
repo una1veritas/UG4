@@ -108,11 +108,30 @@ def change_list(alist,i,j):
 
 #change list
 def change(group,i,j):
-    #print 'change: group=', group, 'i=', i, 'j=', j
+    antiundeterministic = True
+    print 'change:\ngroup =', group, 'i=', i, 'j=', j
     x = find_liststate(group,j)
-    #print "list state:", x
-    group = change_list(group,i,x)
-    print group
+    print "list state:", x, group[x]
+    if antiundeterministic :
+        tstates = list(group[x])
+        tstates.append(i)
+        nxstates = set()
+        tchar = am.ontrans(i, i+1)
+        for s in tstates :
+            if s < len(am) and am.ontrans(s, s+1) == tchar:
+                nxstates.add(s+1)
+        print nxstates
+        for s in group:
+            if set(nxstates).issubset(s) :
+                group = change_list(group,i,x)
+                break
+        else:
+            t = list()
+            t.append(i)
+            group.append(t)
+    else:
+        group = change_list(group,i,x)
+    print 'added', i, ', resulting', group 
 
 #pickup "O"
 def pickup(table,n,m):
