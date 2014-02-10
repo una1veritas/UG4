@@ -38,10 +38,11 @@ else:
 
 
 am = Automaton(ex, label, initlabel)
-print 'work =', sorted(am.work)
-print 'State 0:', sorted(am.rejecting())
-print 'State 1:', sorted(am.accepting)
-print
+#print 'work =', sorted(am.work)
+#print 'State 0:', sorted(am.rejecting())
+#print 'State 1:', sorted(am.accepting)
+print sorted(am.work.iteritems())
+print sorted(am.accepting)
 '''
 work = {}
 exlen = len(ex)
@@ -108,10 +109,10 @@ def change_list(alist,i,j):
 
 #change list
 def change(group,i,j):
-    antiundeterministic = False
-    print 'change:\ngroup =', group, 'i=', i, 'j=', j
+    antiundeterministic = True
+    print 'In group', group, 'merge', i, 
     x = find_liststate(group,j)
-    print "list state:", x, group[x]
+    print "to target", group[x]
     if antiundeterministic :
         tstates = list(group[x])
         tstates.append(i)
@@ -120,15 +121,17 @@ def change(group,i,j):
         for s in tstates :
             if s < len(am) and am.ontrans(s, s+1) == tchar:
                 nxstates.add(s+1)
-        print nxstates
+        print 'letter', tchar, 'leads to next state', nxstates, 
         for s in group:
             if set(nxstates).issubset(s) :
                 group = change_list(group,i,x)
+                print ', passed test.'
                 break
         else:
             t = list()
             t.append(i)
             group.append(t)
+            print ', avoiding ambiguous arc.'
     else:
         group = change_list(group,i,x)
     print 'added', i, ', resulting', group 
@@ -147,71 +150,75 @@ def pickup(table,n,m):
 
 #search automaton
 def unit(table,llist,st,olist):
-    l = len(exstring)-1
+    col = len(exstring)-1
 #    ol = len(olist)-1
     if llist == []:
         print "not unit"
     else:
-        while l > -1:
+        while col > -1:
 #            flag = 0
             print
-            print 'l =', l, 
-            i = len(exstring)
+            print 'column =', col, 
+#            row = len(exstring)
 #            while i > -1:
-            for i in range(len(exstring), -1, -1) :
-                print ', i =', i
-                if table[i][l] == 'Y':
-                    if table[i][l+1] == 'O':
-                        print '[i,l],[i,l+1]=', "Y,O"
-                        if table[l+1][l] == 'Y':
-                            change(st,l,i)
+            for row in range(len(exstring), -1, -1) :
+#                print ', row =', row
+                if table[row][col] == 'Y':
+                    if table[row][col+1] == 'O':
+#                        print '[row,col],[row,col+1]=', "Y,O"
+                        if table[col+1][col] == 'Y':
+                            change(st, col, row)
                             break
 #                        else:
 #                            i = i-1
-                    elif table[i][l+1] == '-':
+                    elif table[row][col+1] == '-':
                         print "Y,-"
-                        change(st,l,i)
+                        change(st,col,row)
+                        break
+                    elif table[row][col+1] == 'X':
+                        print "Y,X"
+                        change(st,col,row)
                         break
 #                   else:
 #                       i = i-1
-                elif table[i][l] == 'O':
-                    if table[i][l+1] == 'X':
+                elif table[row][col] == 'O':
+                    if table[row][col+1] == 'X':
                         print "O,X"
-                        change(st,l,i)
+                        change(st, col, row)
                         break
-                    elif table[i][l+1] == 'O':
+                    elif table[row][col+1] == 'O':
                         print "O,O"
-                        if table[l+1][l] == 'O':
-                            change(st,l,i)
+                        if table[col+1][col] == 'O':
+                            change(st, col, row)
                             break
 #                       else:
 #                           i = i-1
-                    elif table[i][l+1] == '*':
+                    elif table[row][col+1] == '*':
                         print "O,*"
-                        if table[l+1][l] == '*':
-                            change(st,l,i)
+                        if table[col+1][col] == '*':
+                            change(st,col,row)
                             break
 #                      else:
 #                          i = i-1
 #                    else:
 #                        i = i-1
-                elif table[i][l] == '*':
-                    if table[i][l+1] == 'O':
+                elif table[row][col] == '*':
+                    if table[row][col+1] == 'O':
                         print "*,O"
-                        if table[l+1][l] == '*':
-                            change(st,l,i)
+                        if table[col+1][col] == '*':
+                            change(st,col,row)
                             break
 #                       else:
 #                           i = i-1
 #                   else:
 #                       i = i-1
-                else:
-                    print 'all the checks failed.'
+#                else:
+#                    print 'all the checks failed.'
 #                   i = i-1
             else:
-                print 'append',[l],'as a new state.'
-                st = st+[[l]]
-            l = l-1
+#               print 'append',[l],'as a new state.'
+                st = st+[[col]]
+            col = col-1
     print
     return st
 
