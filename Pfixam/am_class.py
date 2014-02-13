@@ -49,8 +49,8 @@ class Automaton:
     
     def __str__(self):
         tmp = 'Automaton('
-        tmp += str(sorted(self.work.iteritems()))
-        tmp += ', '
+        tmp += str(self.alphabet) + ', '
+        tmp += str(self.work) + ', '
         tmp += str(self.accepting)
         tmp += ')'
         return tmp

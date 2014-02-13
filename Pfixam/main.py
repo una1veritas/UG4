@@ -38,6 +38,7 @@ else:
 
 
 am = Automaton(ex, label, initlabel)
+print am
 #print 'work =', sorted(am.work)
 #print 'State 0:', sorted(am.rejecting())
 #print 'State 1:', sorted(am.accepting)
@@ -91,49 +92,38 @@ def checkequal(s1,s2):
         return -1
 
 #find state
-def find_liststate(alist,i):
-    x = 0
-#    print alist,i
+def find_liststate(alist, i):
     for elem in alist:
         if i in elem:
-            return x
-        x+=1
+            return elem
     else:
-        return -1
+        return None
 
-#changing
-def change_list(alist,i,j):
-    alist[j].append(i)
-    return alist
 
+def uniquearc(states, s, tgt):
+    nxtstates = set()
+    nxtstates.add(s+1)
+    tch = am.ontrans(s,s+1)
+    for elem in tgt:
+        if elem < len(am) and am.ontrans(elem, elem+1) == tch :
+            nxtstates.add(elem+1)
+    for s in states :
+        if set(nxtstates).issubset(s) :
+            return True
+    else: 
+        return False
 
 #change list
 def change(group,i,j):
-    antiundeterministic = True
     print 'In group', group, 'merge', i, 
-    x = find_liststate(group,j)
-    print "to target", group[x]
-    if antiundeterministic :
-        tstates = list(group[x])
-        tstates.append(i)
-        nxstates = set()
-        tchar = am.ontrans(i, i+1)
-        for s in tstates :
-            if s < len(am) and am.ontrans(s, s+1) == tchar:
-                nxstates.add(s+1)
-        print 'letter', tchar, 'leads to next state', nxstates, 
-        for s in group:
-            if set(nxstates).issubset(s) :
-                group = change_list(group,i,x)
-                print ', passed test.'
-                break
-        else:
-            t = list()
-            t.append(i)
-            group.append(t)
-            print ', avoiding ambiguous arc.'
+    tgt = find_liststate(group,j)
+    print "to target", tgt
+    if True or uniquearc(group, i, tgt) :
+        tgt.append(i)
     else:
-        group = change_list(group,i,x)
+        t = list()
+        t.append(i)
+        group.append(t)
     print 'added', i, ', resulting', group 
 
 #pickup "O"
@@ -150,75 +140,62 @@ def pickup(table,n,m):
 
 #search automaton
 def unit(table,llist,st,olist):
-    col = len(exstring)-1
-#    ol = len(olist)-1
     if llist == []:
         print "not unit"
-    else:
-        while col > -1:
-#            flag = 0
-            print
-            print 'column =', col, 
-#            row = len(exstring)
-#            while i > -1:
-            for row in range(len(exstring), -1, -1) :
-#                print ', row =', row
-                if table[row][col] == 'Y':
-                    if table[row][col+1] == 'O':
-#                        print '[row,col],[row,col+1]=', "Y,O"
-                        if table[col+1][col] == 'Y':
-                            change(st, col, row)
-                            break
-#                        else:
-#                            i = i-1
-                    elif table[row][col+1] == '-':
-                        print "Y,-"
-                        change(st,col,row)
-                        break
-                    elif table[row][col+1] == 'X':
-                        print "Y,X"
-                        change(st,col,row)
-                        break
-#                   else:
-#                       i = i-1
-                elif table[row][col] == 'O':
-                    if table[row][col+1] == 'X':
-                        print "O,X"
+        return st
+
+    col = len(exstring)-1
+    while col > -1:
+        print
+        for row in range(len(exstring), -1, -1) :
+            '''
+            ambiguity check for merging col to row
+            before transition conditions
+            '''
+            tgtstates = find_liststate(st, row)
+            if (tgtstates == None) or not uniquearc(st, col, tgtstates) :
+                continue
+            '''
+            proceed to test transition conditions if arc uniqueness check passed.
+            '''
+            if table[row][col] == 'Y':
+                if table[row][col+1] == 'O':
+                    if table[col+1][col] == 'Y':
                         change(st, col, row)
                         break
-                    elif table[row][col+1] == 'O':
-                        print "O,O"
-                        if table[col+1][col] == 'O':
-                            change(st, col, row)
-                            break
-#                       else:
-#                           i = i-1
-                    elif table[row][col+1] == '*':
-                        print "O,*"
-                        if table[col+1][col] == '*':
-                            change(st,col,row)
-                            break
-#                      else:
-#                          i = i-1
-#                    else:
-#                        i = i-1
-                elif table[row][col] == '*':
-                    if table[row][col+1] == 'O':
-                        print "*,O"
-                        if table[col+1][col] == '*':
-                            change(st,col,row)
-                            break
-#                       else:
-#                           i = i-1
-#                   else:
-#                       i = i-1
-#                else:
-#                    print 'all the checks failed.'
-#                   i = i-1
-            else:
-#               print 'append',[l],'as a new state.'
-                st = st+[[col]]
-            col = col-1
+                elif table[row][col+1] == '-':
+                    print "Y,-"
+                    change(st,col,row)
+                    break
+                elif (table[row][col+1] == 'X') or (table[row][col+1] == 'Y'):
+                    print "Y,X"
+                    change(st,col,row)
+                    break
+            elif table[row][col] == 'O':
+                if table[row][col+1] == 'X':
+                    print "O,X"
+                    change(st, col, row)
+                    break
+                elif table[row][col+1] == 'O':
+                    print "O,O"
+                    if table[col+1][col] == 'O':
+                        change(st, col, row)
+                        break
+                elif table[row][col+1] == '*':
+                    print "O,*"
+                    if table[col+1][col] == '*':
+                        change(st,col,row)
+                        break
+            elif table[row][col] == '*':
+                if table[row][col+1] == 'O':
+                    print "*,O"
+                    if table[col+1][col] == '*':
+                        change(st,col,row)
+                        break
+        else:
+            st = st+[[col]]
+        col = col-1
+    
     print
     return st
 
