@@ -10,11 +10,11 @@ class Automaton:
     '''
     def __init__(self, exstr = None, labstr = None, initlab = None):
         self.states = set()
-        self.work = {}
+        self.work = dict()
         self.alphabet = set()
         self.accepting = set()
         
-        self.statelist = list()
+        self.identifydict = dict()
 
         if isinstance(exstr,str) and isinstance(labstr,str) :
             if len(exstr) == len(labstr) :
@@ -24,19 +24,23 @@ class Automaton:
             if initlab == 1 :
                 self.accepting.add(0)
             for i in range(len(exstr)) :
-                self.deftrans(i, exstr[i], i+1, labstr[i])
+                self.deftrans(i, exstr[i], i+1)
+                self.deflabel(i+1, labstr[i])
                 #print i, exstr[i], i+1, labstr[i]
 
-    def deftrans(self, fst, onchar, tost, lbl):
+    def deftrans(self, fst, onchar, tost):
         fst = int(fst)
         tost = int(tost)
-        lbl = int(lbl)
         self.states.add(fst)
         self.states.add(tost)
-        self.work[(fst,onchar)] = [tost, lbl]
+        self.work[(fst,onchar)] = tost
         self.alphabet.add(onchar)
+    
+    def deflabel(self, tst, lbl):
+        tst = int(tst)
+        lbl = int(lbl)
         if lbl == 1 :
-            self.accepting.add(tost)
+            self.accepting.add(tst)
     
     def ontrans(self, fst, tost):
         for achar in self.alphabet :
@@ -46,6 +50,13 @@ class Automaton:
         
     def rejecting(self):
         return self.states - self.accepting
+    
+    def stateslist(self):
+        tmp = list()
+        for val in self.identifydict.viewvalues() :
+            if not isinstance(val, int) :
+                tmp.append(val)
+        return tmp
     
     def __len__(self):
         return len(self.work)

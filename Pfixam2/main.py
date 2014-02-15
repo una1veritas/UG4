@@ -75,9 +75,6 @@ print
 '''
 declare st, the list of states_list, with the group including the final state
 '''
-am.statelist.append([len(exstring)])
-print "Last State:", am.statelist
-
 
 n = len(am)
 print n
@@ -92,24 +89,25 @@ def checkequal(s1,s2):
         return -1
 
 #find state
-def find_liststate(alist, i):
-    for elem in alist:
-        if i in elem:
-            return elem
-    else:
-        return None
+#def find_liststate(alist, i):
+#    for elem in alist:
+#        if i in elem:
+#            return elem
+#    else:
+#        return None
 
 
-def uniquearc(states, s, tgt):
+def uniquearc(atm, s, tgt):
     nxtstates = set()
     nxtstates.add(s+1)
-    tch = am.ontrans(s,s+1)
+    tch = atm.ontrans(s,s+1)
     for elem in tgt:
-        if elem < len(am) and am.ontrans(elem, elem+1) == tch :
+        if elem < len(atm) and atm.ontrans(elem, elem+1) == tch :
             nxtstates.add(elem+1)
-    for s in states :
-        if set(nxtstates).issubset(s) :
-            return True
+    for s in atm.identifydict.viewvalues() :
+        if isinstance(s, list): 
+            if set(nxtstates).issubset(s) :
+                return True
     else: 
         return False
 
@@ -139,19 +137,21 @@ def pickup(table,n,m):
     return r
 
 #search automaton
-def unit(table,llist,st,olist):
+def unit(table,llist,olist):
     if llist == []:
         print "not unit"
-        return st
+        return am.identifydict
 
-    col = len(exstring)-1
+    col = len(exstring)
+    am.identifydict[col] = [col]
+    col -= 1
     while col > -1:
         print
         print 'check col=',col
         for row in range(len(exstring), -1, -1) :
             print 'check row=', row, 
             if table[row][col] == '-':
-                st = st+[[col]]
+                am.identifydict[col] = [col]
                 break
             if table[row][col] == 'X':
                 print 'X'
@@ -160,8 +160,10 @@ def unit(table,llist,st,olist):
             ambiguity check for merging col to row
             before transition conditions
             '''
-            tgtstates = find_liststate(st, row)
-            if (tgtstates == None) or not uniquearc(st, col, tgtstates) :
+            tgtstates = am.identifydict.get(row)
+            if isinstance(tgtstates, int) :
+                tgtstates = am.identifydict.get(tgtstates)
+            if (tgtstates == None) or not uniquearc(am, col, tgtstates) :
                 print 'failed ambiguity check.'
                 continue
             '''
@@ -171,7 +173,8 @@ def unit(table,llist,st,olist):
                 print 'Y/*',
 #                if table[row][col+1] == 'O':
 #                    if table[col+1][col] == 'Y':
-                change(st, col, row)
+                am.identifydict[col] = row # change(st, col, row)
+                am.identifydict[row].append(col)
                 break
 #                elif table[row][col+1] == '-':
 #                    print "Y,-"
@@ -186,7 +189,8 @@ def unit(table,llist,st,olist):
                 print 'O,',
 #                if row == len(exstring) or table[row][col+1] == 'X':
 #                    print 'X'
-                change(st, col, row)
+                am.identifydict[col] = row #change(st, col, row)
+                am.identifydict[row].append(col)
                 break
 #                elif table[row][col+1] == 'O':
 #                    print 'O'
@@ -207,11 +211,10 @@ def unit(table,llist,st,olist):
 #                        break
 
         print 'col',col,'task finished.'
-        print st
+        print am.identifydict
         col = col-1
     
     print
-    return st
 
 #make "O"list
 def makeolist(llist,n):
@@ -227,7 +230,7 @@ def makeolist(llist,n):
     return olist
 
 
-def unitcheck(table,n,st):
+def unitcheck(table,n):
     l = []
     olist = []
     for i in range(n+1):
@@ -237,8 +240,8 @@ def unitcheck(table,n,st):
     print
     print "Olist",olist
     print
-    st = unit(table,l,st,olist)
-    print st
+    unit(table,l,olist)
+    print am.stateslist()
     print
 
 #make table
@@ -280,7 +283,7 @@ for i in range(n,-1,-1):
 
 print
 print "Start Check"
-unitcheck(t,n,am.statelist)
+unitcheck(t,n)
 
 #accept = [1] #end state
 
