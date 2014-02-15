@@ -171,6 +171,7 @@ def unit(table,llist,st,olist):
                     print "Y,X"
                     change(st,col,row)
                     break
+                
             elif table[row][col] == 'O':
                 if table[row][col+1] == 'X':
                     print "O,X"
