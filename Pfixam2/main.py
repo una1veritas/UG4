@@ -81,13 +81,6 @@ print n
 print
 
 
-def checkequal(s1,s2):
-#    if (s1 in st_0 and s2 in st_0) or (s1 in st_1 and s2 in st_1):
-    if (s1 not in am.accepting and s2 not in am.accepting) or (s1 in am.accepting and s2 in am.accepting) :
-        return 1
-    else:
-        return -1
-
 #find state
 #def find_liststate(alist, i):
 #    for elem in alist:
@@ -104,8 +97,8 @@ def uniquearc(atm, s, tgt):
     for elem in tgt:
         if elem < len(atm) and atm.ontrans(elem, elem+1) == tch :
             nxtstates.add(elem+1)
-    for s in atm.identifydict.viewvalues() :
-        if isinstance(s, list): 
+    for s in atm.groups.viewvalues() :
+        if isinstance(s, set): 
             if set(nxtstates).issubset(s) :
                 return True
     else: 
@@ -141,17 +134,13 @@ def unit(table,llist,olist):
     if llist == []:
         print "not unit"
         return am.identifydict
-
-    col = len(exstring)
-    am.identifydict[col] = [col]
-    col -= 1
+    col = len(exstring) - 1
     while col > -1:
         print
         print 'check col=',col
         for row in range(len(exstring), -1, -1) :
             print 'check row=', row, 
             if table[row][col] == '-':
-                am.identifydict[col] = [col]
                 break
             if table[row][col] == 'X':
                 print 'X'
@@ -160,10 +149,7 @@ def unit(table,llist,olist):
             ambiguity check for merging col to row
             before transition conditions
             '''
-            tgtstates = am.identifydict.get(row)
-            if isinstance(tgtstates, int) :
-                tgtstates = am.identifydict.get(tgtstates)
-            if (tgtstates == None) or not uniquearc(am, col, tgtstates) :
+            if (not row in am.groups) or not uniquearc(am, col, am.groups[row]) :
                 print 'failed ambiguity check.'
                 continue
             '''
@@ -173,8 +159,9 @@ def unit(table,llist,olist):
                 print 'Y/*',
 #                if table[row][col+1] == 'O':
 #                    if table[col+1][col] == 'Y':
-                am.identifydict[col] = row # change(st, col, row)
-                am.identifydict[row].append(col)
+                # change(st, col, row)
+                am.groups[row] |= am.groups[col]
+                del am.groups[col] 
                 break
 #                elif table[row][col+1] == '-':
 #                    print "Y,-"
@@ -189,8 +176,9 @@ def unit(table,llist,olist):
                 print 'O,',
 #                if row == len(exstring) or table[row][col+1] == 'X':
 #                    print 'X'
-                am.identifydict[col] = row #change(st, col, row)
-                am.identifydict[row].append(col)
+                #change(st, col, row)
+                am.groups[row] |= am.groups[col]
+                del am.groups[col] #= row 
                 break
 #                elif table[row][col+1] == 'O':
 #                    print 'O'
@@ -211,7 +199,7 @@ def unit(table,llist,olist):
 #                        break
 
         print 'col',col,'task finished.'
-        print am.identifydict
+        print am
         col = col-1
     
     print
@@ -259,13 +247,13 @@ print
 for i in range(n,-1,-1):
     for j in range(i-1,-1,-1):
         if i == n:
-            if checkequal(i,j) == 1:
+            if am.isequiv(i,j) == 1:
                 t[i][j] = "O"
             else:
                 t[i][j] = "X"
         else:
-            r1 = checkequal(i,j)
-            r2 = checkequal(i+1,j+1)
+            r1 = am.isequiv(i,j)
+            r2 = am.isequiv(i+1,j+1)
             if r1 == 1 and r2 == 1:
                 if am.ontrans(i,i+1) != am.ontrans(j,j+1):
                     t[i][j] = "*"
