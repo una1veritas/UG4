@@ -199,7 +199,7 @@ def unit(table,llist,olist):
 #                        break
 
         print 'col',col,'task finished.'
-        print am
+        print am.stateslist()
         col = col-1
     
     print
