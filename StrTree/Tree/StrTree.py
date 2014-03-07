@@ -17,10 +17,20 @@ class StrNode:
 
     def add(self, labelstr):
         if self.edgedict.has_key(labelstr[0]) :
-            print self.edgedict[labelstr[0]][0]
+            lbl = self.edgedict[labelstr[0]][0]
+            cpfx = self.commonprefixlen(labelstr, lbl)
+            newstr = labelstr[cpfx:]
+            print cpfx, labelstr[:cpfx], newstr
+            self.edgedict[labelstr[0]][0] = lbl[:cpfx]
             return
         emptyNode = StrNode()
         self.edgedict[labelstr[0]] = [labelstr, emptyNode]
+
+    def commonprefixlen(self, a, b):
+        for l in range(0, min(len(a), len(b)) ) :
+            if a[l] != b[l] :
+                break
+        return l
 
 class StrTree:
     '''
