@@ -7,11 +7,13 @@ class StrNode:
     edgedict
     '''    
     
-    def __init__(self, label = None):
+    def __init__(self, label = None, index = None):
         if label != None :
             self.strlabel = str(label)
+            self.index = int(index)
         else:
             self.strlabel = None
+            self.index = None
         self.edgedict = dict()
         return
 
@@ -21,6 +23,8 @@ class StrNode:
     def __str__(self):
         if self.strlabel != None :
             tmp = self.strlabel
+            tmp += ','
+            tmp += str(self.index)
         else:
             tmp = ''
         if len(self.edgedict.items()) > 0 :
@@ -36,26 +40,26 @@ class StrNode:
     def label(self):
         return self.strlabel
     
-    def add(self, labelstr):
-        if len(labelstr) == 0 :
-            self.edgedict[len(self.edgedict)] = StrNode('$'+str(len(self.edgedict)))
+    def add(self, string, index):
+        if len(string) == 0 :
+            self.edgedict[len(self.edgedict)] = StrNode('$'+str(index))
             return
-        if self.edgedict.has_key(labelstr[0]) :
-            child = self.edgedict[labelstr[0]]
-            commprefixend = self.commonprefixlen(child.label(), labelstr)
+        if self.edgedict.has_key(string[0]) :
+            child = self.edgedict[string[0]]
+            commprefixend = self.commonprefixlen(child.label(), string)
             if commprefixend == len(child.label()) :
-                return child.add(labelstr[commprefixend:])
-            print 'add to child =', child, ' label =', labelstr, ', with common prefix =', labelstr[:commprefixend]
-            newnode = StrNode(labelstr[:commprefixend])
-            self.edgedict[labelstr[0]] = newnode
-            newnode.add(labelstr[commprefixend:])
+                return child.add(string[commprefixend:])
+            print 'add to child =', child, ' label =', string, ', with common prefix =', string[:commprefixend]
+            newnode = StrNode(string[:commprefixend])
+            self.edgedict[string[0]] = newnode
+            newnode.add(string[commprefixend:])
             print 'newnode =', newnode
             child.strlabel = child.strlabel[commprefixend:]
             newnode.edgedict[child.strlabel[0]] = child
             print 'after:newnode =', newnode
             return
         else:
-            self.edgedict[labelstr[0]] = StrNode(labelstr)
+            self.edgedict[string[0]] = StrNode(string, index)
             return
 
     def commonprefixlen(self, a, b):
@@ -81,6 +85,9 @@ class StrTree:
         tmp += str(self.root)
         return tmp
     
-    def add(self, aString):
-        self.root.add(str(aString))
+    def add(self, astring):
+        if isinstance(astring, tuple) :
+            self.root.add(str(astring[0]), int(astring[1]))
+        else:
+            self.root.add(str(astring))
         return
