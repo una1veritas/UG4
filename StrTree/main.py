@@ -8,7 +8,6 @@ for index in range(0, len(string)) :
     suffix = string[index:]
     tree.add( (suffix, index) )
     print tree
-    print
 
 print 'Final result:'
 print tree
