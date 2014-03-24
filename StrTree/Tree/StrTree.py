@@ -32,11 +32,11 @@ class StrNode:
             tmp = ''
         if len(self.edgedict.items()) > 0 :
             tmp += '('
-            items = self.edgedict.items()
-            tmp += str(items[0][1] )
-            for ix in range(1, len(items)) :
+            edgelist = sorted(self.edgedict.items(), key=lambda t: t[0])
+            tmp += str(edgelist[0][1])
+            for ix in range(1, len(edgelist)) :
                 tmp += ', '
-                tmp += str(items[ix][1])
+                tmp += str(edgelist[ix][1])
             tmp += ')'
         return tmp
 
@@ -52,19 +52,11 @@ class StrNode:
             commprefixend = self.commonprefixlen(child.label(), string)
             if commprefixend == len(child.label()) :
                 return child.add(string[commprefixend:], index)
-<<<<<<< HEAD
-            print 'add to child =', child, ' label =', string, ', with common prefix =', string[:commprefixend]
-            newnode = StrNode(string[:commprefixend])
-            self.edgedict[string[0]] = newnode
-            newnode.add(string[commprefixend:], index)
-            print 'newnode =', newnode
-=======
 #            print 'add to child =', child, ' label =', string, ', with common prefix =', string[:commprefixend]
             newnode = StrNode(string[:commprefixend])
             self.edgedict[string[0]] = newnode
             newnode.add(string[commprefixend:], index)
 #            print 'newnode =', newnode
->>>>>>> @workplace
             child.strlabel = child.strlabel[commprefixend:]
             newnode.edgedict[child.strlabel[0]] = child
 #            print 'after:newnode =', newnode
