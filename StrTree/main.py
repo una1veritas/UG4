@@ -1,9 +1,15 @@
 from Tree.StrTree import *
 
 print 'Hi.'
-string = 'aabaaababba'
+string = 'abbabbaab'
 
 tree = StrTree()
-tree.add( (string[3:], 3) )
+for index in range(0, len(string)) :
+    suffix = string[index:]
+    tree.add( (suffix, index) )
+    print tree
+    print
+
+print 'Final result:'
 print tree
 print
