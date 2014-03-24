@@ -10,9 +10,11 @@ class StrNode:
     def __init__(self, label = None, index = None):
         if label != None :
             self.strlabel = str(label)
-            self.index = int(index)
         else:
             self.strlabel = None
+        if index != None :
+            self.index = int(index)
+        else:
             self.index = None
         self.edgedict = dict()
         return
@@ -48,11 +50,11 @@ class StrNode:
             child = self.edgedict[string[0]]
             commprefixend = self.commonprefixlen(child.label(), string)
             if commprefixend == len(child.label()) :
-                return child.add(string[commprefixend:])
+                return child.add(string[commprefixend:], index)
             print 'add to child =', child, ' label =', string, ', with common prefix =', string[:commprefixend]
             newnode = StrNode(string[:commprefixend])
             self.edgedict[string[0]] = newnode
-            newnode.add(string[commprefixend:])
+            newnode.add(string[commprefixend:], index)
             print 'newnode =', newnode
             child.strlabel = child.strlabel[commprefixend:]
             newnode.edgedict[child.strlabel[0]] = child
@@ -87,7 +89,7 @@ class StrTree:
     
     def add(self, astring):
         if isinstance(astring, tuple) :
-            self.root.add(str(astring[0]), int(astring[1]))
+            self.root.add(str(astring[0]), astring[1])
         else:
-            self.root.add(str(astring))
+            self.root.add(str(astring), 0)
         return
