@@ -8,46 +8,48 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <stdexcept>
+
 using namespace std;
 
 typedef uint16_t uint16;
 
+template <class TYPE>
 class Stack {
-	static const uint16 min_size = 32;
+private:
 
-	pair<uint16, uint16> * array;
-	uint16 tally;
-	uint16 limit;
+	vector<TYPE> array;
 
 	void init(uint16 n) {
-		array = new pair<uint16, uint16>[n];
-		tally = 0;
-		limit = n;
+		array.clear();
 	}
 
 
 public:
-	Stack(uint16 size = min_size) {
-		init(size);
+	Stack<TYPE>(uint16 n = 0) {
+		init(n);
 	}
 
-	~Stack(void) {
-		delete[] array;
-		limit = 0;
-		tally = 0;
+	void push(const TYPE & elem) {
+		array.push_back(elem);
 	}
 
-	void push(const pair<uint16, uint16> & x) {
-		array[tally++] = x;
-	}
-
-	void pop(pair<uint16, uint16> & x) {
-		x = array[--tally];
+	TYPE & pop(void) {
+	    if (array.empty()) {
+	        throw out_of_range("Stack<>::pop(): empty stack");
+	    }
+		// remove last element
+	    return array.pop_back();
 	}
 
 	ostream & printOn(ostream & stream) {
-		for(int i = 0; i < tally; i++) {
-			stream << "[" << array[i].first << ", " << array[i].second << "] ";
+		for(int i = 0; i < array.size(); i++) {
+			stream << "[";
+			stream << array[i];
+			stream << ", ";
+			stream << array[i];
+			stream << "] ";
 		}
 		return stream;
 	}
@@ -69,7 +71,7 @@ int main(int argc, char * argv[]) {
 	}
 	cout << "example = " << example << ", label = " << label << std::endl;
 
-	Stack stack;
+	Stack< pair<uint16,uint16> > stack;
 	pair<uint16,uint16> x;
 	x.first = 0; x.second = 1;
 	stack.push(x);

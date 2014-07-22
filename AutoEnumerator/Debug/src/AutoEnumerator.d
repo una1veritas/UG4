@@ -1,1 +1,1 @@
-src/AutoEnumerator.d src/AutoEnumerator.o: ../src/AutoEnumerator.cpp
+src/AutoEnumerator.d: ../src/AutoEnumerator.cpp
