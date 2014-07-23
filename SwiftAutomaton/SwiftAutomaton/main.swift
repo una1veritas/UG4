@@ -10,50 +10,74 @@ import Foundation
 
 println("It's just only the begginig...")
 
-class StateChar : Equatable, Hashable {
-    var state : Int
-    var char  : String
+class StateMachine {
+
+    class StateChar : Equatable, Hashable, Printable {
+        var state : Int
+        var char  : Character
+        let dontcare : Character = "*"
+        
+        init(state: Int, char: Character) {
+            self.state = state
+            self.char = char
+        }
+        
+        init(state: Int) {
+            self.state = state
+            char = dontcare
+        }
+        
+        var hashValue: Int {
+        let codes = String(char).unicodeScalars
+            let code = codes[codes.startIndex].value
+            return (state<<8) + Int(code)
+        }
+        
+        var description: String {
+        return "StateChar: (\(state), \(char))"
+        }
+    }
     
-    init(state: Int, char: String) {
-        self.state = state
-        self.char = char
+    
+    var alphabet : [Character]
+    var states : [Int]
+    var transfer : [StateChar: Int]
+    
+    init(alphabet: [Character], states: [Int]) {
+        self.states = states
+        self.alphabet = alphabet
+        self.transfer = Dictionary<StateChar, Int>()
     }
-
-    init(state: Int) {
-        self.state = state
-        char = "*"
+    
+    func define(dept: Int, via: Character, dest: Int) {
+        transfer[StateChar(state: dept, char: via)] = dest
     }
-
-    var hashValue: Int {
-        let codes = char.unicodeScalars
-        let code = codes[codes.startIndex].value
-        return (state<<8) + Int(code)
-    }
-
+    
 }
 
-
-func == (lhs: StateChar, rhs: StateChar) -> Bool {
+func == (lhs: StateMachine.StateChar, rhs: StateMachine.StateChar) -> Bool {
     return (lhs.state == rhs.state) && (lhs.char == rhs.char)
 }
 
-var transition = [ StateChar: Int ]()
 
-    transition[StateChar(state: 0, char: "*")] = 5
-    transition[StateChar(state: 1)] = 3
-    transition[StateChar(state: 2)] = 1
-    transition[StateChar(state: 3)] = 4
-    transition[StateChar(state: 4)] = 6
-    transition[StateChar(state: 5)] = 2
-    transition[StateChar(state: 6)] = nil
+var m = StateMachine(alphabet: ["a", "b"], states: [0, 1, 2, 3])
+
+m.define(0, via: "a", dest: 0)
+m.define(0, via: "b", dest: 1)
 
 var q: Int = 0
-while (transition[StateChar(state: q)] != nil) {
-    print("State " + String(q) + " to ")
-    if let next = transition[StateChar(state: q)] {
-        q = next
-        println(String(q) + ".")
-    }
+var index: Int = 0
+var str : String = "abbabab"
+
+while let t = m.transfer[StateMachine.StateChar(state: q, char: str[advance(str.startIndex, index)])] {
+    print("State ")
+    print(StateMachine.StateChar(state: q, char: str[advance(str.startIndex, index)]))
+    print(" to ")
+    q = t
+    print(q)
+    println(".")
+    index++
+
 }
 
 println("Transition ended.")
