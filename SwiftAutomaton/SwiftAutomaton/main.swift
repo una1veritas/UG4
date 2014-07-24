@@ -10,9 +10,23 @@ import Foundation
 
 println("It's just only the begginig...")
 
-class StateMachine : Printable {
 
-    let initialState : Int = 0
+extension String {
+    subscript (i: Int) -> Character {
+        return self[advance(self.startIndex, i)]
+    }
+}
+
+extension Character {
+    var unicode : Int {
+        get {
+        let codes = String(self).unicodeScalars
+        return Int(codes[codes.startIndex].value)
+        }
+    }
+}
+
+class StateMachine : Printable {
 
     class StateChar : Equatable, Hashable, Printable {
         var state : Int
@@ -31,9 +45,11 @@ class StateMachine : Printable {
         }
         
         var hashValue: Int {
+            /*
             let codeArray = String(char).unicodeScalars
             let code = codeArray[codeArray.startIndex].value
-            return (state<<8) + Int(code)
+            */
+            return (state<<8) + Int(char.unicode)
         }
         
         var description: String {
@@ -48,6 +64,16 @@ class StateMachine : Printable {
     var finalStates : [Int]
     var currentState : Int
     
+    var current : Int {
+    get { return currentState }
+    set { currentState = newValue }
+    }
+
+    var initial : Int {
+    get { return states[self.states.startIndex] }
+    set { states[self.states.startIndex] = newValue}
+    }
+
     init(alphabet: [Character]) {
         self.states = [ 0 ]
         self.alphabet = alphabet
@@ -65,7 +91,7 @@ class StateMachine : Printable {
         
         currentState = self.states[self.states.startIndex]
     }
-    
+
     func define(dept: Int, via: Character, dest: Int) {
         if find(states, dept) == nil {
             states.append(dept)
@@ -89,16 +115,32 @@ class StateMachine : Printable {
         
     }
     
-    func trans(dept: Int, via: Character) -> Int {
-        if let dst = transfer[StateChar(state: dept, char: via)] {
-            return dst
+    func accepting() -> Bool {
+        if find(finalStates, currentState) == nil {
+            return false
         }
-        return -1
+        return true
     }
     
-    func read(char: Character) -> Bool {
-        var next : Int = trans(currentState, via: char)
-        if next != -1 {
+    func defineLinearChain(str: String, flag: String) {
+        if countElements(str)+1 != countElements(flag) {
+            return
+        }
+        //
+        if flag[0] == "1" {
+            m.acceptingState(0)
+        }
+        for var i = 0; i < countElements(str); ++i {
+            m.define(i, via: str[i], dest: i+1)
+            if flag[i+1] == "1" {
+                m.acceptingState(i+1)
+            }
+        }
+
+    }
+    
+    func transit(char: Character) -> Bool {
+        if let next = transfer[StateChar(state: current, char: char)] {
             currentState = next
             return true
         }
@@ -109,43 +151,33 @@ class StateMachine : Printable {
     return "StateMachine(alphabet: \(alphabet), states: \(states), transfer: \(transfer), finalStates: \(finalStates))"
     }
     
-    var current : Int {
-    get { return currentState }
-    set { currentState = newValue }
-    }
 }
 
 func == (lhs: StateMachine.StateChar, rhs: StateMachine.StateChar) -> Bool {
     return (lhs.state == rhs.state) && (lhs.char == rhs.char)
 }
 
-
 var m = StateMachine(alphabet: ["a", "b"])
 
 
-var q: Int = 0
-var index: Int = 0
-var str : String = "abbabab"
+var ex  : String =  "abbabab"
+var accflags : String = "01001101"
 
-m.define(0, via: "a", dest: 1)
-m.define(1, via: "b", dest: 2)
-m.define(2, via: "b", dest: 3)
-m.define(3, via: "a", dest: 4)
-m.define(4, via: "b", dest: 5)
-m.define(5, via: "a", dest: 6)
-m.define(6, via: "b", dest: 7)
-
-m.acceptingState(7)
+m.defineLinearChain(ex, flag: accflags)
 
 println(m)
 
-while index < countElements(str) {
-    print("State ")
-    print(String(m.current) )
-    print(" to ")
-    m.read(str[advance(str.startIndex, index)])
-    print(String(m.current) )
-    println(".")
+var index: Int = 0
+m.current = m.initial
+while index < countElements(ex) {
+    print("State \(String(m.current)) to ")
+    m.transit(ex[index])
+    print("\(m.current), ")
+    if m.accepting() {
+        println("accept.")
+    } else {
+        println("reject.")
+    }
     index++
 
 }
