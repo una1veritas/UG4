@@ -80,7 +80,7 @@ class StateMachine : Printable {
         self.transfer = Dictionary<StateChar, Int>()
         self.finalStates = []
         
-        currentState = self.states[self.states.startIndex]
+        currentState = states[states.startIndex]
     }
     
     init(alphabet: [Character], states: [Int]) {
@@ -137,6 +137,23 @@ class StateMachine : Printable {
             }
         }
 
+    }
+
+    func defineShrinkedDiagram(str: String, flag: String) {
+        if countElements(str)+1 != countElements(flag) {
+            return
+        }
+        //
+        if flag[0] == "1" {
+            m.acceptingState(0)
+        }
+        for var i = 0; i < countElements(str); ++i {
+        // for each example str[0..i] and flag[0..i+1]
+            //for each trial
+            // determine the best among
+            // revisiting old states and the new state (i+1)
+        }
+        
     }
     
     func transit(char: Character) -> Bool {
