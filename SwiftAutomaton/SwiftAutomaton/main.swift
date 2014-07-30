@@ -8,21 +8,65 @@
 
 import Foundation
 
+println("Stack Test.")
+
+class Stack<T> : Printable {
+    var elements = [T]()
+    
+    init() {
+    }
+    
+    func clear() {
+        elements.removeAll()
+    }
+    
+    func isEmpty() -> Bool {
+        return countElements(elements) == 0
+    }
+    
+    func push(item : T) {
+        elements.append(item)
+    }
+    
+    func pop() -> T {
+        return elements.removeLast()
+    }
+    
+    func peek() -> T {
+        return elements[elements.endIndex-1]
+    }
+
+    var count : Int {
+    get { return countElements(elements) }
+    }
+    //
+    
+    var description: String {
+        var str: String = "Stack<T> ("
+        for var i: Int = 0; i < count ; i++ {
+            str +=  "\(elements[i])"
+            if i+1 < count {
+                str += ", "
+            }
+        }
+        str += ")"
+        return str
+    }
+
+}
+
+
 println("It's just only the begginig...")
 
 
 extension String {
+
     subscript (i: Int) -> Character {
         return self[advance(self.startIndex, i)]
     }
-}
 
-extension Character {
-    var unicode : Int {
-        get {
-        let codes = String(self).unicodeScalars
-        return Int(codes[codes.startIndex].value)
-        }
+    subscript (val1: Int, val2: Int) -> String {
+            return self.bridgeToObjectiveC().substringWithRange(NSMakeRange(val1, val2))
     }
 }
 
@@ -45,11 +89,9 @@ class StateMachine : Printable {
         }
         
         var hashValue: Int {
-            /*
             let codeArray = String(char).unicodeScalars
             let code = codeArray[codeArray.startIndex].value
-            */
-            return (state<<8) + Int(char.unicode)
+            return (state<<8) + Int(code)
         }
         
         var description: String {
@@ -60,15 +102,9 @@ class StateMachine : Printable {
     
     var alphabet : [Character]
     var states : [Int]
-    var transfer : [StateChar: Int]
+    var transfunc : [StateChar: Int]
     var finalStates : [Int]
-    var currentState : Int
     
-    var current : Int {
-    get { return currentState }
-    set { currentState = newValue }
-    }
-
     var initial : Int {
     get { return states[self.states.startIndex] }
     set { states[self.states.startIndex] = newValue}
@@ -77,19 +113,15 @@ class StateMachine : Printable {
     init(alphabet: [Character]) {
         self.states = [ 0 ]
         self.alphabet = alphabet
-        self.transfer = Dictionary<StateChar, Int>()
+        self.transfunc = Dictionary<StateChar, Int>()
         self.finalStates = []
-        
-        currentState = states[states.startIndex]
     }
     
     init(alphabet: [Character], states: [Int]) {
         self.states = states
         self.alphabet = alphabet
-        self.transfer = Dictionary<StateChar, Int>()
+        self.transfunc = Dictionary<StateChar, Int>()
         self.finalStates = []
-        
-        currentState = self.states[self.states.startIndex]
     }
 
     func define(dept: Int, via: Character, dest: Int) {
@@ -102,10 +134,10 @@ class StateMachine : Printable {
         if find(alphabet, via) == nil {
             alphabet.append(via)
         }
-        transfer[StateChar(state: dept, char: via)] = dest
+        transfunc[StateChar(state: dept, char: via)] = dest
     }
     
-    func acceptingState(state: Int) {
+    func defineFinalState(state: Int) {
         if find(states, state) == nil {
             self.states.append(state)
         }
@@ -115,57 +147,161 @@ class StateMachine : Printable {
         
     }
     
-    func accepting() -> Bool {
-        if find(finalStates, currentState) == nil {
+    func accepting(state: Int) -> Bool {
+        if find(finalStates, state) == nil {
             return false
         }
         return true
     }
     
-    func defineLinearChain(str: String, flag: String) {
-        if countElements(str)+1 != countElements(flag) {
+    func defineChainDiagram(sequence: String, labels: String) {
+        if countElements(sequence)+1 != countElements(labels) {
             return
         }
         //
-        if flag[0] == "1" {
-            m.acceptingState(0)
+        if labels[0] == "1" {
+            m.defineFinalState(0)
         }
-        for var i = 0; i < countElements(str); ++i {
-            m.define(i, via: str[i], dest: i+1)
-            if flag[i+1] == "1" {
-                m.acceptingState(i+1)
+        for var i = 0; i < countElements(sequence); ++i {
+            m.define(i, via: sequence[i], dest: i+1)
+            if labels[i+1] == "1" {
+                m.defineFinalState(i+1)
             }
         }
 
     }
 
-    func defineShrinkedDiagram(str: String, flag: String) {
-        if countElements(str)+1 != countElements(flag) {
-            return
+    func prefixExample(sequence: String, labels: String, length: Int) -> (String, Bool) {
+        return (sequence[0,length], (labels[length] == "1" ? true : false) )
+    }
+    
+    func defineShrinkedDiagram(sequence: String, labels: String) -> Bool? {
+        
+        if countElements(sequence)+1 != countElements(labels) {
+            return nil
         }
         //
-        if flag[0] == "1" {
-            m.acceptingState(0)
+        if ( labels[0] == "1" ) {
+            defineFinalState(initial)
         }
-        for var i = 0; i < countElements(str); ++i {
+        println("label for empty string is \(labels[0]).\r\n")
+        
+        var currs : Int = self.initial
+        var prevs : Int
+        var lastchar : Character
+        var probe = Stack<(Int,Int,Character,Bool)>()
+        let tquad : (Int, Int, Character, Bool) = (0, self.initial, "\0", false)
+        probe.push(tquad)
+        while probe.count < countElements(sequence) {
+            var lastquad = probe.peek()
+            prevs = lastquad.0
+            currs = lastquad.1
+            lastchar = sequence[probe.count-1]
+            println("currs, lastchar = \(currs), \(lastchar)")
+            println("\(self.transfunc)")
+            if let next = transfer(currs, char: lastchar) {
+                let quad = (currs, next, lastchar, false)
+                probe.push(quad)
+                println("next --- \(next)")
+            } else {
+                println("undefined.")
+                
+                if true {
+                    // if challenge another
+                    // pop
+                    let quad = (currs, 0, lastchar, true)
+                    probe.push(quad)
+                    define(quad.0, via: quad.2, dest: quad.1)
+                } else {
+                    // if creating a new state
+                    let quad = (currs, maxElement(states)+1, lastchar, true)
+                    probe.push(quad)
+                    define(quad.0, via: quad.2, dest: quad.1)
+                }
+            }
+            println(probe)
+
+        }
+        /*
+        while !probe.isempty() && probe.count < countElements(sequence) {
+            let i = probe.count
+            let (lastchar, lastlabel) = (sequence[i], labels[i+1] == "1")
+            println("an example (\(lastchar), \(lastlabel)).")
+            if let tnexts : Int = transfer(currs, char: lastchar) {
+                nexts = tnexts
+                if ( lastlabel == accepting(nexts) ) {
+                    println("OK. ")
+                    let pair = ( currs, false )
+                    probe.push(pair)
+                    //
+                    currs = nexts
+                } else {
+                    println("Contradiction! ")
+                    // purge and back to the last decision
+                    while let pair : (Int, Bool) = probe.peek() {
+                        currs = pair.0
+                        if pair.1 == true {
+                            break
+                        }
+                        probe.pop()
+                    }
+                    continue
+                }
+            } else {
+                println("Undefined transition encountered.")
+                
+                // trying a loop
+                let pair : (Int, Bool) = probe.pop()
+                
+                
+                // create a new state
+                println("creating new state.")
+                let pair : (Int, Bool) = (currs, true)
+                probe.push(pair)
+                nexts = i+1
+                define(currs, via: lastchar, dest: nexts)
+                if lastlabel { defineFinalState(nexts) }
+                currs = nexts
+                println(self.transfunc)
+                
+            }
+            println(probe)
+        }
+*/
+        probe.clear()
         // for each example str[0..i] and flag[0..i+1]
             //for each trial
             // determine the best among
             // revisiting old states and the new state (i+1)
-        }
-        
+        return true
     }
     
-    func transit(char: Character) -> Bool {
-        if let next = transfer[StateChar(state: current, char: char)] {
-            currentState = next
-            return true
+    func transfer(current : Int, char : Character) -> Int? {
+        if let next = transfunc[StateChar(state: current, char: char)] {
+            return next
         }
-        return false
+        return nil
+    }
+    
+    func transfer(current: Int, sequence: String) -> Int? {
+        var i :Int
+        var tstate : Int = current
+        for i = 0; i < countElements(sequence) ; ++i {
+            if let next = transfunc[StateChar(state: tstate, char: sequence[i])] {
+                tstate = next
+                continue;
+            } else {
+                break
+            }
+        }
+        if i < countElements(sequence) {
+            return nil
+        }
+        return tstate
     }
     
     var description: String {
-    return "StateMachine(alphabet: \(alphabet), states: \(states), transfer: \(transfer), finalStates: \(finalStates))"
+    return "StateMachine(alphabet: \(alphabet), states: \(states), transfer: \(transfunc), finalStates: \(finalStates))"
     }
     
 }
@@ -177,20 +313,26 @@ func == (lhs: StateMachine.StateChar, rhs: StateMachine.StateChar) -> Bool {
 var m = StateMachine(alphabet: ["a", "b"])
 
 
-var ex  : String =  "abbabab"
-var accflags : String = "01001101"
+var seq  : String =  "abbabab"
+var lab : String = "01001101"
 
-m.defineLinearChain(ex, flag: accflags)
+println("example = \(seq), \(lab).")
+//m.defineChainDiagram(seq, labels: lab)
+
+println(m)
+println()
+
+m.defineShrinkedDiagram(seq, labels: lab)
 
 println(m)
 
 var index: Int = 0
-m.current = m.initial
-while index < countElements(ex) {
-    print("State \(String(m.current)) to ")
-    m.transit(ex[index])
-    print("\(m.current), ")
-    if m.accepting() {
+var current = m.initial
+while index < countElements(seq) {
+    print("State \(String(current)) to ")
+    m.transfer(current, char: seq[index])
+    print("\(current), ")
+    if m.accepting(current) {
         println("accept.")
     } else {
         println("reject.")
