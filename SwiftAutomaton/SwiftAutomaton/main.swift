@@ -55,9 +55,9 @@ class StateMachine : Printable {
     var transfunc : [StateChar: Int]
     var finalStates : [Int]
     
-    var initialState : Int {
-    get { return states[self.states.startIndex] }
-    set { states[self.states.startIndex] = newValue}
+    var initial : Int {
+    get { return states[0] }
+    set { states[0] = newValue}
     }
     
     init(alphabet: [Character]) {
@@ -107,6 +107,15 @@ class StateMachine : Printable {
         return true
     }
     
+    func id(state: Int) -> Int {
+        for var i = 0; i < countElements(states); ++i {
+            if states[i] == state {
+                return i
+            }
+        }
+        return -1
+    }
+    
     func defineChainDiagram(sequence: String, labels: String) {
         if countElements(sequence)+1 != countElements(labels) {
             return
@@ -134,11 +143,6 @@ class StateMachine : Printable {
             return false
         }
         
-        //    setting the label for the initial state.
-        if ( labels[labels.startIndex] == "1" ) {
-            defineFinalState(initialState)
-        } // else the initial state is not final state.
-        
         println("DEBUG: after set the initial label: \n\(self).\n")
         
         var current : Int
@@ -147,47 +151,68 @@ class StateMachine : Printable {
         var lastChar : Character
         var prefixLabel : Bool
         var lastLabel : Bool
-        var searchProbe = Stack<(Int, Int, Character, Int)>()
+        var searchProbe = Stack<(Int, Int, Int)>()
+        var exlen : Int
         
-        var exlength = 1
-        while exlength <= countElements(sequence) {
-            prefix = sequence[0, exlength - 1]
-            lastChar = sequence[exlength-1]
-            lastLabel = labels[exlength] == "1" ? true : false
+        //    setting the label for the initial state.
+        if ( labels[0] == "1" ) {
+            defineFinalState(initial)
+        } // else the initial state is not final state.
+
+        let tup : (Int, Int, Int) = (1, initial, initial) // exlength, src, dest
+        searchProbe.push(tup)
+        // start from the initial state with the prefix of length 1
+        while searchProbe.peek().0 <= countElements(sequence) {
+            var triple = searchProbe.peek()
+            exlen = triple.0
+            prefix = sequence[0, exlen - 1]
+            lastChar = sequence[exlen-1]
+            lastLabel = (labels[exlen] == "1")
             
-            current = self.transfer(initialState, sequence: prefix)!
-            next = current // dummy!!
-            if transferIsDefined(current, char: lastChar) && (lastLabel == accepting(next)) {
-                print("transition has already been defined. ")
+            current = states[triple.1] // has to be already defined
+            var consistency : Bool = false
+            if transferIsDefined(current, char: lastChar) {
                 next = transfer(current, char: lastChar)!
-                println("and, fine, no contradiction.")
-                println()
-                ++exlength
+                if lastLabel == accepting(next) {
+                    consistency = true
+                }
             } else {
-                var i : Int
+                next = states[triple.2] // this is the state to try next; always begin with initial
+            }
+            
+            if consistency {
+                print("transition has already been defined. ")
+                println("and, it's fine, no contradiction.")
+                println()
+                println("a1) probe = \(searchProbe).")
+                let repltriple = (exlen, current, next)
+                searchProbe.pop()
+                searchProbe.push(repltriple)
+                let nextriple : (Int, Int, Int) = (exlen+1, id(next), initial)
+                searchProbe.push(nextriple)
+                println("a2) probe = \(searchProbe).")
+            } else {
                 if transferIsDefined(current, char: lastChar) {
                     // We are here because a contradiction has been occurred.
                     println("Mmm, it's a contradiction!!")
                     println("I don't remember the last decision! But you must roll back the last decisions!!")
                     println()
-                    let tup = searchProbe.pop()
-                    self.undefine(tup.1, via: tup.2, dest: tup.3)
-                    exlength = tup.0
-                    prefix = sequence[0, exlength - 1]
-                    lastChar = sequence[exlength-1]
-                    lastLabel = labels[exlength] == "1" ? true : false
-                    for i = 0; states[i] != tup.3;  ++i { }
-                    ++i
-                    next = states[i]
-                } else {
-                    i = 0
-                    next = states[0]
+                    
+                    this must be looped until back to the last addition of transition!!!
+                    self.undefine(current, via: lastChar, dest: next)
+                    searchProbe.pop()
+                    
+                    
+                    let repltriple : (Int, Int, Int) = (exlen, id(current), id(next)+1)
+                    searchProbe.push(repltriple)
+                    println("b) probe = \(searchProbe).")
+                    continue
                 }
                 print("requires a new transition. ")
                 // tries a new transition to the existing states.
+                var i = id(next)
                 for ; i < countElements(states); ++i {
                     if lastLabel == accepting(states[i]){
-                        next = states[i]
                         println("Ok it's fine, no contradiction.\n")
                         break
                     } else {
@@ -198,21 +223,31 @@ class StateMachine : Printable {
                 if i < countElements(states) {
                     next = states[i]
                     define(current, via: lastChar, dest: next) // by prefix + lastChar
-                    let tup = (exlength, current, lastChar, next)
+                    searchProbe.pop()
+                    let tup = (exlen, current, next)
                     searchProbe.push(tup)
+                    println("c) probe = \(searchProbe).")
+                    let nextriple = (exlen+1, next, initial)
+                    searchProbe.push(nextriple)
+                    println("c2) probe = \(searchProbe).")
                 } else {
                     // simply add a new transition to a newly created states.
-                    next = maxElement(states) + 1
+                    states.append(exlen)
+                    next = id(exlen)
                     println("Now we need a new transition and a new state \(next). \n")
                     define(current, via: lastChar, dest: next) // by prefix + lastChar
-                    let tup = (exlength, current, lastChar, next)
-                    searchProbe.push(tup)
+                    if lastLabel { defineFinalState(next) }
+                    searchProbe.pop()
+                    let repltriple = (exlen, current, next)
+                    searchProbe.push(repltriple)
+                    println("d) probe = \(searchProbe).")
+                    let nextriple = (exlen+1, next, initial)
+                    searchProbe.push(nextriple)
+                    println("d2) probe = \(searchProbe).")
                 }
-                ++exlength
             }
             println("Stack contents \(searchProbe)")
-            println("\(current) -> \(prefix):\(lastChar), \(lastLabel) -> \(next),")
-            println("Go to the next example of length \(exlength).\n")
+            println("\(current) -> \(prefix):\(lastChar), \(lastLabel) -> \(next).")
         }
         searchProbe.clear()
         
