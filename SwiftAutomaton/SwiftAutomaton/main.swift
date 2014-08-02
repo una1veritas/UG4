@@ -146,10 +146,11 @@ class StateMachine : Printable {
         println("DEBUG: after set the initial label: \n\(self).\n")
         
         var current : Int
-        var next : Int
-        var prefix : String
+        //var next : Int
+        var nextIndex : Int
+//        var prefix : String
         var lastChar : Character
-        var prefixLabel : Bool
+//        var prefixLabel : Bool
         var lastLabel : Bool
         var searchProbe = Stack<(Int, Int, Int)>()
         var exlen : Int
@@ -163,82 +164,83 @@ class StateMachine : Printable {
         exlen = 1
         // start from the initial state with the prefix of length 1
         while exlen <= countElements(sequence) {
-            prefix = sequence[0, exlen - 1]
+//            prefix = sequence[0, exlen - 1]
             lastChar = sequence[exlen-1]
             lastLabel = (labels[exlen] == "1")
 
             var consistency : Bool = false
             if transferIsDefined(current, char: lastChar) {
-                next = transfer(current, char: lastChar)!
+                let next = transfer(current, char: lastChar)!
+                nextIndex = id(next)
                 consistency = (lastLabel == accepting(next) )
             } else {
-                if searchProbe.isEmpty() || searchProbe.peek().0 != exlen {
-                    next = initial
-                } else {
-                    next = searchProbe.peek().2 // this is the last state tried out
+                if searchProbe.peek()?.0 == exlen {
+                    if current != searchProbe.peek()!.1 {
+                        println("Woo!!! Unexpected current state!!!!")
+                    }
+                    let next = searchProbe.peek()!.2
+                    // this is the state which has been tried last
                     self.undefine(current, via: lastChar, dest: next)
-                    next = states[id(next)+1]
+
+                    nextIndex = id(next)+1
                     searchProbe.pop()
+                    println("Probe = \(searchProbe).")
+                } else {
+                    // if searchProbe.isEmpty() || searchProbe.peek().0 != exlen {
+                    // new state will be defined.
+                    nextIndex = states.startIndex
                 }
             }
             
             if consistency {
-                print("transition has already been defined. ")
-                println("and, it's fine, no contradiction.")
-                println()
-                // println("a1) probe = \(searchProbe).")
                 // going down with the definition
-                current = next
+                current = id(nextIndex)
                 ++exlen
             } else {
                 if transferIsDefined(current, char: lastChar) {
                     // We are here because a contradiction has been occurred.
-                    println("Mmm, it's a contradiction!!")
-                    println("Recall the last decision! Roll back the last decisions!!")
-                    println()
-                    println("b) probe = \(searchProbe).")
-                    let triple = searchProbe.peek()
+                    print("On \(exlen), ")
+                    
+                    let triple = searchProbe.peek()!
                     exlen = triple.0
                     current = triple.1
-                    next = triple.2
+                    nextIndex = id(triple.2)
                     lastChar = sequence[exlen - 1]
-                    self.undefine(current, via: lastChar, dest: next)
+
+                    self.undefine(current, via: lastChar, dest: states[nextIndex])
+                    println("Contradiction!! Back to \(exlen).")
                     // next = states[id(next)+1] next candidate will be advanced in the next iteration.
-                    println("b) probe = \(searchProbe).")
                     continue
                 }
-                print("requires a new transition. ")
-                // tries a new transition to the existing states.
-                var i = id(next)
-                for ; i < countElements(states); ++i {
+                // tries existing states.
+                var i : Int
+                for i = nextIndex; i < countElements(states); ++i {
                     if lastLabel == accepting(states[i]){
-                        println("Ok it's fine, no contradiction.\n")
+                        //println("Ok it's fine, no contradiction.\n")
                         break
-                    } else {
-                        println("Mmm, it makes a contradiction. Skip it.")
-                        continue
                     }
                 }
                 if i < countElements(states) {
-                    next = states[i]
+                    println("\(exlen) Adding a new transition btw. existing states.")
+                    let next = states[i]
                     define(current, via: lastChar, dest: next) // by prefix + lastChar
                     let triple = (exlen, current, next)
                     searchProbe.push(triple)
+                    current = next
                 } else {
                     // simply add a new transition to a newly created states.
                     states.append(exlen)
-                    next = exlen
-                    println("Now we need a new transition and a new state \(next). \n")
+                    let next = exlen
+                    println("\(exlen) Needs a new transition and a new state \(next).")
                     define(current, via: lastChar, dest: next) // by prefix + lastChar
                     if lastLabel { defineFinalState(next) }
                     let triple = (exlen, current, next)
                     searchProbe.push(triple)
+                    current = next
                 }
-                println("probe = \(searchProbe).")
-                current = next
                 ++exlen
             }
-            println("Stack contents \(searchProbe)")
+            println("Probe \(searchProbe)")
             println("Machine \(self)")
         }
         searchProbe.clear()
@@ -284,11 +286,11 @@ func == (lhs: StateMachine.StateChar, rhs: StateMachine.StateChar) -> Bool {
     return (lhs.state == rhs.state) && (lhs.char == rhs.char)
 }
 
-var m = StateMachine(alphabet: ["a", "b"])
+var m = StateMachine(alphabet: ["a"])
 
 
-var seq  : String =  "abbabab"
-var lab : String = "01001101"
+var seq  : String =  "aaaaaaaaaaaaaa"
+var lab : String = "011000110011001"
 
 println("example = \(seq), \(lab).")
 //m.defineChainDiagram(seq, labels: lab)

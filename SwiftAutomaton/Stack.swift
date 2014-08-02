@@ -31,7 +31,8 @@ class Stack<T> : Printable {
         return elements.removeLast()
     }
     
-    func peek() -> T {
+    func peek() -> T? {
+        if elements.endIndex == 0 { return nil }
         return elements[elements.endIndex-1]
     }
     
