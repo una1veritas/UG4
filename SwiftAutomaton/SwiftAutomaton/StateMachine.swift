@@ -206,12 +206,13 @@ class StateMachine : Printable {
             } else if !(consistent!) { //!consistent {
                 // transferIsDefined(current, char: lastChar) && not consistent
                 // We are here because a contradiction with the transition has been found.
-                let triple = searchProbe.peek()!
+                print("\npurge on \(exlen), ")
+                    let triple = searchProbe.peek()!
                 exlen = triple.0
                 current = triple.1
                 self.undefine(current, via: seq[exlen - 1], dest: triple.2)
                 if msg { println("Encountered contradiction!! Purge and back to \(exlen).") }
-                print("\npurge on \(exlen), \(current) -\(lastChar)-> \(triple.2); ")
+                print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
                 continue
             }
             current = states[nextIndex]
