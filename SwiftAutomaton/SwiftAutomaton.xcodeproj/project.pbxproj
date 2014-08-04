@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		273FB5ED197F2F0E000A1F38 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 273FB5EC197F2F0E000A1F38 /* main.swift */; };
-		27986AE31988A62A00078231 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27986AE21988A62A00078231 /* Stack.swift */; };
+		278864A8198F5D7600321250 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 278864A7198F5D7600321250 /* Stack.swift */; };
 		27B7F83B198D0E0400EB24FA /* StateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B7F83A198D0E0400EB24FA /* StateMachine.swift */; };
 /* End PBXBuildFile section */
 
@@ -27,7 +27,7 @@
 /* Begin PBXFileReference section */
 		273FB5E9197F2F0E000A1F38 /* SwiftAutomaton */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SwiftAutomaton; sourceTree = BUILT_PRODUCTS_DIR; };
 		273FB5EC197F2F0E000A1F38 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		27986AE21988A62A00078231 /* Stack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Stack.swift; path = ../Stack.swift; sourceTree = "<group>"; };
+		278864A7198F5D7600321250 /* Stack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stack.swift; sourceTree = "<group>"; };
 		27B7F83A198D0E0400EB24FA /* StateMachine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateMachine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -61,7 +61,7 @@
 		273FB5EB197F2F0E000A1F38 /* SwiftAutomaton */ = {
 			isa = PBXGroup;
 			children = (
-				27986AE21988A62A00078231 /* Stack.swift */,
+				278864A7198F5D7600321250 /* Stack.swift */,
 				273FB5EC197F2F0E000A1F38 /* main.swift */,
 				27B7F83A198D0E0400EB24FA /* StateMachine.swift */,
 			);
@@ -124,7 +124,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27986AE31988A62A00078231 /* Stack.swift in Sources */,
+				278864A8198F5D7600321250 /* Stack.swift in Sources */,
 				27B7F83B198D0E0400EB24FA /* StateMachine.swift in Sources */,
 				273FB5ED197F2F0E000A1F38 /* main.swift in Sources */,
 			);
