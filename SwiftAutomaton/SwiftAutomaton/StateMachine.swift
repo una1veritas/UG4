@@ -146,9 +146,8 @@ class StateMachine : Printable {
         } // else the initial state is not final state.
         
         current = initial
-        exlen = 1
         // start from the initial state with the prefix of length 1
-        while exlen <= countElements(seq) {
+        for exlen = 1; (0 < exlen) && (exlen <= countElements(seq) ) ; {
             //            prefix = sequence[0, exlen - 1]
             lastChar = seq[exlen-1]
             lastLabel = (labels[exlen] == "1")
@@ -207,7 +206,7 @@ class StateMachine : Printable {
                 // transferIsDefined(current, char: lastChar) && not consistent
                 // We are here because a contradiction with the transition has been found.
                 print("\npurge on \(exlen), ")
-                    let triple = searchProbe.peek()!
+                let triple = searchProbe.peek()!
                 exlen = triple.0
                 current = triple.1
                 self.undefine(current, via: seq[exlen - 1], dest: triple.2)
@@ -218,9 +217,17 @@ class StateMachine : Printable {
             current = states[nextIndex]
             ++exlen
             print(".")
+            if !(exlen <= countElements(seq) ) {
+                println("one Machine \(self)")
+                let triple = searchProbe.peek()!
+                exlen = triple.0
+                current = triple.1
+                self.undefine(current, via: seq[exlen - 1], dest: triple.2)
+                if msg { println("Encountered contradiction!! Purge and back to \(exlen).") }
+                print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
+                continue
+            }
             
-            if msg { println("Probe \(searchProbe)") }
-            if msg { println("Machine \(self)") }
         }
         searchProbe.clear()
         

@@ -30,11 +30,12 @@ var m0 = StateMachine(alphabet: ["a"])
 
 println("example = \(seq), \(lab).")
 
+/*
 m0.defineDiagramBy(seq, labels: lab)
 println("State machine:")
 println(m0)
 println()
-
+*/
 seq  =  "babbbaabababb"
 lab  = "00011100001001"
 
