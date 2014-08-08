@@ -16,7 +16,8 @@ extension String {
     }
 
     subscript (val1: Int, val2: Int) -> String {
-            return self.bridgeToObjectiveC().substringWithRange(NSMakeRange(val1, val2))
+        var range = Range<String.Index>(start: self.startIndex + val1, end: self.startIndex + val1 + val2)
+        return self.substringWithRange(range)
     }
 }
 
