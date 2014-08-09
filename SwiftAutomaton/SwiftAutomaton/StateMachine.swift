@@ -54,6 +54,19 @@ class StateMachine : Printable {
         self.transfunc = Dictionary<StateChar, Int>()
         self.finalStates = []
     }
+
+    init(alphabet: String) {
+        self.states = [ 0 ]
+        self.alphabet = []
+        for c : Character in alphabet {
+                if find(self.alphabet, c) == nil {
+                    self.alphabet.append(c)
+                }
+        }
+        self.alphabet.sort {String($0) < String($1)}
+        self.transfunc = Dictionary<StateChar, Int>()
+        self.finalStates = []
+    }
     
     init(alphabet: [Character], states: [Int]) {
         self.states = states
@@ -63,7 +76,6 @@ class StateMachine : Printable {
     }
     
     func define(dept: Int, via: Character, dest: Int) {
-        defineState(dept)
         defineState(dest)
         if find(alphabet, via) == nil {
             alphabet.append(via)
@@ -125,12 +137,13 @@ class StateMachine : Printable {
     //       return (sequence[0,length], (labels[length] == "1" ? true : false) )
     //    }
     
-    func defineDiagramBy(seq: String, labels: String) -> Bool {
+    func defineDiagramBy(seq: String, labels: String, var restriction : [Int]) -> Int {
         let msg : Bool = false
+        var achieved : Int = 0
         
         // check correspondence between an example string and class label string
         if countElements(seq)+1 != countElements(labels) {
-            return false
+            return achieved
         }
         
         var current : Int
@@ -147,8 +160,7 @@ class StateMachine : Printable {
         
         current = initial
         // start from the initial state with the prefix of length 1
-        for exlen = 1; (0 < exlen) && (exlen <= countElements(seq) ) ; {
-            //            prefix = sequence[0, exlen - 1]
+        for exlen = 1; /*(0 < exlen) &&*/ (exlen <= countElements(seq) ) ; {
             lastChar = seq[exlen-1]
             lastLabel = (labels[exlen] == "1")
             
@@ -167,7 +179,7 @@ class StateMachine : Printable {
                     // just set a candidate next state (possibly not exists)
                     searchProbe.pop()
                     // the previous trial is removed.
-                    if msg { println("updated probe: \(searchProbe).") }
+                    // println("updated probe: \(searchProbe).")
                 } else {
                     // if searchProbe.isEmpty() || searchProbe.peek().0 != exlen {
                     // new transition should be defined.
@@ -181,22 +193,38 @@ class StateMachine : Printable {
             /*if consistent {
                 // go along with the existing definition
             } else */
+            
+            
             if consistent == nil { //!transferIsDefined(current, char: lastChar) {
                 // try existing states.
                 for ; nextIndex < countElements(states) ; ++nextIndex {
                     if lastLabel == accepting(states[nextIndex]) { break }
                 }
                 if nextIndex < countElements(states) {
-                    if msg { println("\(exlen) Adding a new transition btw. existing states.") }
+                    // println("\(exlen) Adding a new transition btw. existing states.")
                     define(current, via: lastChar, dest: states[nextIndex]) // by prefix + lastChar
-                } else {
+                } else if restriction[exlen] != 0 {
                     // simply add a new transition to a newly created states.
-                    if msg { println("Needs a new transition and a new state \(exlen).") }
+                    println("Needs a new transition and a new state \(exlen).")
+                    restriction[exlen] = 0
                     states.append(exlen) // exlen be the name of new state (because always larger than or equal to the number of all the states)
                     nextIndex = id(exlen)
                     define(current, via: lastChar, dest: exlen) // by prefix + lastChar
                     if lastLabel { defineFinalState(exlen) }
                     //let triple = (exlen, current, states[nextIndex])
+                } else {
+                    println("exhaused purge on \(exlen), ")
+                    achieved = max(achieved, exlen)
+                    if let triple = searchProbe.peek() {
+                        exlen = triple.0
+                        current = triple.1
+                        self.undefine(current, via: seq[exlen - 1], dest: triple.2)
+                        // println("Encountered contradiction!! Purge and back to \(exlen).")
+                        // print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
+                        continue
+                    } else {
+                        break
+                    }
                 }
                 let triple = (exlen, current, states[nextIndex])
                 searchProbe.push(triple)
@@ -205,33 +233,22 @@ class StateMachine : Printable {
             } else if !(consistent!) { //!consistent {
                 // transferIsDefined(current, char: lastChar) && not consistent
                 // We are here because a contradiction with the transition has been found.
-                print("\npurge on \(exlen), ")
+                println("purge on \(exlen).")
                 let triple = searchProbe.peek()!
                 exlen = triple.0
                 current = triple.1
                 self.undefine(current, via: seq[exlen - 1], dest: triple.2)
-                if msg { println("Encountered contradiction!! Purge and back to \(exlen).") }
-                print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
+                // println("Encountered contradiction!! Purge and back to \(exlen).")
+                // print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
                 continue
             }
             current = states[nextIndex]
             ++exlen
-            print(".")
-            if !(exlen <= countElements(seq) ) {
-                println("one Machine \(self)")
-                let triple = searchProbe.peek()!
-                exlen = triple.0
-                current = triple.1
-                self.undefine(current, via: seq[exlen - 1], dest: triple.2)
-                if msg { println("Encountered contradiction!! Purge and back to \(exlen).") }
-                print("\(current) -\(lastChar)-> \(triple.2); back to \(exlen)")
-                continue
-            }
-            
+            println("\(self)")
         }
         searchProbe.clear()
         
-        return true
+        return max(achieved, exlen)
     }
     
     func transfer(current : Int, char : Character) -> Int? {
@@ -241,8 +258,11 @@ class StateMachine : Printable {
         return nil
     }
     
-    func transferIsDefined(current : Int, char : Character) -> Bool {
-        return transfunc[StateChar(state: current, char: char)] ? true : false
+    func transferIsDefined( current: Int, char : Character) -> Bool {
+        if let result = transfunc[StateChar(state: current, char: char)] {
+            return true
+        }
+        return false
     }
     
     func transfer(current: Int, seq: String) -> Int? {

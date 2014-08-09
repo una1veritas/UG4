@@ -10,13 +10,43 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SwiftAutomaton/StateMachine.swift"
-            timestampString = "428944580.078222"
+            timestampString = "429251810.667738"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "206"
-            endingLineNumber = "206"
-            landmarkName = "defineDiagramBy(_:labels:)"
+            startingLineNumber = "218"
+            endingLineNumber = "218"
+            landmarkName = "defineDiagramBy(_:labels:restriction:)"
             landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SwiftAutomaton.StateMachine.defineDiagramBy (SwiftAutomaton.StateMachine)(Swift.String, labels : Swift.String, restriction : Swift.Array&lt;Swift.Int&gt;) -&gt; Swift.Int"
+                  moduleName = "SwiftAutomaton"
+                  urlString = "file:///Users/sin/Documents/Prefix_automaton/SwiftAutomaton/SwiftAutomaton/StateMachine.swift"
+                  timestampString = "429250834.926992"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "216"
+                  endingLineNumber = "216"
+                  offsetFromSymbolStart = "5986">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SwiftAutomaton.StateMachine.defineDiagramBy (SwiftAutomaton.StateMachine)(Swift.String, labels : Swift.String, restriction : Swift.Array&lt;Swift.Int&gt;) -&gt; Swift.Int"
+                  moduleName = "SwiftAutomaton"
+                  urlString = "file:///Users/sin/Documents/Prefix_automaton/SwiftAutomaton/SwiftAutomaton/StateMachine.swift"
+                  timestampString = "429250834.927622"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "216"
+                  endingLineNumber = "216"
+                  offsetFromSymbolStart = "6027">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

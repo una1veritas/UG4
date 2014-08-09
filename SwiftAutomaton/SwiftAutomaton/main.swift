@@ -15,15 +15,15 @@ extension String {
         return self[advance(self.startIndex, i)]
     }
 
-    subscript (val1: Int, val2: Int) -> String {
-        var range = Range<String.Index>(start: self.startIndex + val1, end: self.startIndex + val1 + val2)
+    subscript (from: Int, before: Int) -> String {
+        var range = Range<String.Index>(start: advance(self.startIndex, from), end: advance(self.startIndex, before))
         return self.substringWithRange(range)
     }
 }
 
 
 
-
+/*
 var seq  : String =  "aaaaaaaaaaaaaa"
 var lab : String = "011000110011001"
 
@@ -31,20 +31,22 @@ var m0 = StateMachine(alphabet: ["a"])
 
 println("example = \(seq), \(lab).")
 
-/*
 m0.defineDiagramBy(seq, labels: lab)
 println("State machine:")
 println(m0)
 println()
 */
-seq  =  "babbbaabababb"
-lab  = "00011100001001"
 
-var m1 = StateMachine(alphabet: ["a", "b"])
+var seq  =  "babbbaabababb"
+var lab  = "00011100001001"
+
+var m1 = StateMachine(alphabet: seq)
 
 println("example = \(seq), \(lab).")
 
-m1.defineDiagramBy(seq, labels: lab)
+var achieved = m1.defineDiagramBy(seq, labels: lab, restriction: [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+println("\nachieved \(achieved)")
+println()
 println("State machine:")
 println(m1)
 println()
