@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "SwiftAutomaton/StateMachine.swift"
-            timestampString = "429251810.667738"
+            timestampString = "429345303.057035"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "218"
-            endingLineNumber = "218"
+            startingLineNumber = "223"
+            endingLineNumber = "223"
             landmarkName = "defineDiagramBy(_:labels:restriction:)"
             landmarkType = "5">
             <Locations>

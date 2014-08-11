@@ -16,9 +16,16 @@ extension String {
     }
 
     subscript (from: Int, before: Int) -> String {
-        var range = Range<String.Index>(start: advance(self.startIndex, from), end: advance(self.startIndex, before))
+        var range = Range<String.Index>(start: advance(self.startIndex, min(countElements(self), from)),
+            end: advance(self.startIndex, min(countElements(self), before) ) )
         return self.substringWithRange(range)
     }
+    
+    // string[range] -> substring form start pos on the left to end pos on the right
+    subscript(range: Range<Int>) -> String {
+        return self[range.startIndex, range.endIndex]
+    }
+    
 }
 
 
@@ -44,10 +51,9 @@ var m1 = StateMachine(alphabet: seq)
 
 println("example = \(seq), \(lab).")
 
-var achieved = m1.defineDiagramBy(seq, labels: lab, restriction: [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-println("\nachieved \(achieved)")
+var achieved = m1.defineDiagramBy(seq, labels: lab, restriction: [1, 1, 2, 3])
+println("\nreached \(seq[0,achieved])^\(seq[achieved,countElements(seq)])")
 println()
-println("State machine:")
 println(m1)
 println()
 
