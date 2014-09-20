@@ -164,7 +164,7 @@ class StateMachine : Printable {
         
         current = initial
         // start from the initial state with the prefix of length 1
-        for exlen = 1; /*(0 < exlen) &&*/ (exlen <= countElements(seq) ) ; {
+        for exlen = 1; exlen <= countElements(seq) ; {
             lastChar = seq[exlen-1]
             lastLabel = (labels[exlen] == "1")
             

@@ -44,15 +44,19 @@ println(m0)
 println()
 */
 
-var seq  =  "babbbaabababb"
-var lab  = "00011100001001"
+var seq  =  "baaababbbaaabba"
+var lab  = "0010001000100001"
 
 var m1 = StateMachine(alphabet: seq)
 
 println("example = \(seq), \(lab).")
 
-var achieved = m1.defineDiagramBy(seq, labels: lab, restriction: [1, 1, 2, 3])
-println("\nreached \(seq[0,achieved])^\(seq[achieved,countElements(seq)])")
+var achieve = m1.defineDiagramBy(seq, labels: lab, restriction: [1, 1, 2, 3])
+if achieve <= countElements(seq) {
+    println("\nfailed at \(achieve) of \(countElements(seq)), \(seq[0,achieve])^\(seq[achieve,countElements(seq)])")
+} else {
+    println("\ncompleted \(achieve) out of \(countElements(seq)), \(seq[0,achieve])^\(seq[achieve,countElements(seq)])")
+}
 println()
 println(m1)
 println()
